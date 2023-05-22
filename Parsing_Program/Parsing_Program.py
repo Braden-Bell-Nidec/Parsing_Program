@@ -24,7 +24,7 @@ if not EPGA_File.endswith('.xlsx'):
     EPGA_File += '.xlsx'
 
 AD_File = input("Enter path of Active Directory file: ")
-if not EPGA_File.endswith('.csv'):
+if not AD_File.endswith('.csv'):
     AD_File += '.csv'
 
 fileName = merge_files(EPGA_File, AD_File, 'combined.xlsx') 
