@@ -7,57 +7,11 @@ The user is first asked to input a file name and an outlier percentage threshold
 that occur less frequently, or outliers. 
 '''
 
-import pandas as pd
-import numpy as np
 import openpyxl
-from openpyxl.chart import PieChart, Reference
-from openpyxl.utils.dataframe import dataframe_to_rows
-from openpyxl.styles import Alignment
+import pandas as pd
+import os
 from Combiner import merge_files
-
-
-#Adjusts the column width of all specified columns in the sheet
-def adjust_column_width(sheet, cols_width_dict):
-    for col, width in cols_width_dict.items():
-        sheet.column_dimensions[col].width = width
-
-#Aligns the cells in the specified columns to the given type (center, left, right)
-def align_cells(sheet, cols, alignment):
-    for col in cols:
-        for cell in sheet[col]:
-            cell.alignment = alignment
-
-
-#Generates a pie chart in the specified sheet based on responsibility data
-def create_pie_chart(sheet, responsibilities):
-    chart = PieChart()
-    labels = Reference(sheet, min_col=1, min_row=2, max_row=len(responsibilities)+1)
-    data = Reference(sheet, min_col=2, min_row=1, max_row=len(responsibilities)+1)
-    chart.add_data(data, titles_from_data=True)
-    chart.set_categories(labels)
-    chart.title = 'Responsibility Distribution'
-    sheet.add_chart(chart, "C1")
-
-#Appends all the rows of a DataFrame to a given sheet object
-def append_dataframe_to_sheet(sheet, df):
-    for row in dataframe_to_rows(df, index=False, header=True):
-        sheet.append(row)
-
-
-#Retrieves responsibility data from the given DataFrame and returns it
-def get_responsibility_data(df):
-    responsibilities = df['RESPONSIBILITY_NAME'].value_counts().reset_index()
-    responsibilities.columns = ['RESPONSIBILITY_NAME', 'COUNTS']
-    return responsibilities
-
-#Uses create_pie_chart() to write the pie charts to the sheet. It contains formatting data.
-def create_pie_charts(df, wb, sheetname):
-    ws = wb[sheetname]
-    responsibilities = get_responsibility_data(df)
-    append_dataframe_to_sheet(ws, responsibilities)
-    adjust_column_width(ws, {'A': 45, 'B': 10})
-    align_cells(ws, ['B'], Alignment(horizontal='center'))
-    create_pie_chart(ws, responsibilities)
+import Excel_Functions as ef
 
 #Set terminal output options
 pd.set_option('display.max_rows', None)
@@ -153,19 +107,19 @@ wb.remove(wb.active)  #Remove the default sheet
 
 #Create and populate the outlier sheet
 outliers_sheet = wb.create_sheet(title='Outliers')
-append_dataframe_to_sheet(outliers_sheet, outlier_users)
+ef.append_dataframe_to_sheet(outliers_sheet, outlier_users)
 
 #Format the outlier sheet
-adjust_column_width(outliers_sheet, {'A': 15, 'B': 15, 'C': 35, 'D': 42, 'E': 12})
-align_cells(outliers_sheet, ['A', 'B', 'C', 'D'], Alignment(horizontal='center'))
+ef.adjust_column_width(outliers_sheet, {'A': 15, 'B': 15, 'C': 35, 'D': 42, 'E': 12})
+ef.align_cells(outliers_sheet, ['A', 'B', 'C', 'D'], ef.Alignment(horizontal='center'))
 
 #Create and populate the non-outlier sheet
 non_outliers_sheet = wb.create_sheet(title='Non-Outliers')
-append_dataframe_to_sheet(non_outliers_sheet, non_outliers)
+ef.append_dataframe_to_sheet(non_outliers_sheet, non_outliers)
 
 #Format non-outlier sheet
-adjust_column_width(non_outliers_sheet, {'A': 15, 'B': 35, 'C': 32, 'D': 12})
-align_cells(non_outliers_sheet, ['A', 'B', 'C', 'D'], Alignment(horizontal='center'))
+ef.adjust_column_width(non_outliers_sheet, {'A': 15, 'B': 35, 'C': 32, 'D': 12})
+ef.align_cells(non_outliers_sheet, ['A', 'B', 'C', 'D'], ef.Alignment(horizontal='center'))
 
 
 invalid_chars = ['/', '\\', '?', '*', '[', ']', ':']
@@ -175,9 +129,14 @@ for department, df in department_dfs.items():
         department = department.replace(char, '_')
     sheetname = department[:31]  #Sheet names can't be longer than 31 characters or Excel breaks
     wb.create_sheet(title=sheetname)
-    create_pie_charts(df, wb, sheetname)
+    ef.create_pie_charts(df, wb, sheetname)
 
 #Save changes to the sheet
 wb.save("analysis.xlsx")
+
+try:
+    os.remove('combined.xlsx')
+except:
+    print("WARN: could not delete temp file.")
 
 input("\n\nAll tasks completed. Press enter to close.")
