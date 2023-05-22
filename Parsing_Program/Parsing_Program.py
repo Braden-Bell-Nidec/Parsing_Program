@@ -7,7 +7,9 @@ The user is first asked to input a file name and an outlier percentage threshold
 that occur less frequently, or outliers. 
 '''
 
+#TODO: Add the try-except blocks suggested by GPT-4
 import pandas as pd
+import openpyxl as pyxl
 import os
 from Combiner import merge_files
 import Excel_Functions as ef
@@ -27,15 +29,28 @@ AD_File = input("Enter path of Active Directory file: ")
 if not AD_File.endswith('.csv'):
     AD_File += '.csv'
 
-fileName = merge_files(EPGA_File, AD_File, 'combined.xlsx') 
+#Attempt to combine files
+try:
+    fileName = merge_files(EPGA_File, AD_File, 'combined.xlsx')
+except PermissionError:
+    print(f"Permission denined when trying to access one of the files {EPGA_File} or {AD_File}")
+    print("Usually can be caused by one or more of the files being open in Excel.")
+    print("Please close the file(s) and try again.")
+    input("Press enter to close.")
+except Exception as e:
+    print(f"Error merging files! Details: {e}")
+    input("Press enter to close.")
+    exit()
 
-# Attempt to open excel sheet
+#Attempt to read the combined sheet
 try:
     df = pd.read_excel(fileName)
-except:
-    print("Error reading file!")
-    input("Nothing to do! Press enter to close.")
+except Exception as e:
+    print(f"Error reading the merged Excel file! Details: {e}")
+    print("Press enter to close.")
     exit()
+
+
 
 # Get outlier percentage from user
 userPercent = input("Enter outlier percentage threshold (default is 7%): ")
@@ -44,9 +59,11 @@ if userPercent == "":
 else:
     try:
         userPercent = abs(float(userPercent) / 100.00)
-    except:
+    except ValueError:
         print("Input value error, resorting to default")
         userPercent = DEFAULT_PERCENT
+    except Exception as e:
+        print(f"An unknown error occured! Details: {e}")
 
 # Create a dictionary of DataFrames for each unique department
 department_dfs = {}
@@ -101,7 +118,7 @@ print("\n\n-==================== Non-Outliers ====================-")
 print(non_outliers)  # Print non-outlier DataFrame data to terminal
 
 # Prepare to write to excel
-wb = ef.Workbook()  # Open workbook
+wb = pyxl.Workbook()  # Open workbook
 wb.remove(wb.active)  # Remove the default sheet
 
 # Create and populate the outlier sheet
@@ -130,7 +147,19 @@ for department, df in department_dfs.items():
     ef.create_pie_charts(df, wb, sheetname)
 
 # Save changes to the sheet
-wb.save("analysis.xlsx")
+try:
+    wb.save("analysis.xlsx")
+except PermissionError:
+    print("Permission denied when trying to save results to file!")
+    print("This is ususally caused by a previous analysis.xlsx file being open in Excel.")
+    print("Please close the file and try again.")
+    input("Press enter to close.")
+    exit()
+except Exception as e:
+    print(f"Error saving file! Details: {e}")
+
+    
+
 
 # Clean up temp file
 try:
