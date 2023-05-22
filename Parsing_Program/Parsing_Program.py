@@ -1,6 +1,6 @@
 '''
 Braden Bell
-05-19-23
+05-22-23
 Description:
 This Python script is designed to perform an analysis of job responsibilities within various departments of an organization. 
 The user is first asked to input a file name and an outlier percentage threshold, which assists in identifying responsibilities 
@@ -13,6 +13,8 @@ import openpyxl
 from openpyxl.chart import PieChart, Reference
 from openpyxl.utils.dataframe import dataframe_to_rows
 from openpyxl.styles import Alignment
+from Combiner import merge_files
+
 
 #Adjusts the column width of all specified columns in the sheet
 def adjust_column_width(sheet, cols_width_dict):
@@ -62,9 +64,16 @@ pd.set_option('display.max_rows', None)
 pd.set_option('display.max_colwidth', None)
 
 #Get file name from user
-fileName = input("Enter file name or path: ") 
-if not fileName.endswith(".xlsx"):
-    fileName += (".xlsx")
+#fileName = input("Enter file name or path: ")
+EPGA_File = input("Enter path of EPGA file: ")
+if not EPGA_File.endswith('.xlsx'):
+    EPGA_File += '.xlsx'
+
+AD_File = input("Enter path of Active Directory file: ")
+if not EPGA_File.endswith('.csv'):
+    AD_File += '.csv'
+
+fileName = merge_files(EPGA_File, AD_File, 'combined.xlsx') 
     
 #Attempt to open excel sheet
 try:
@@ -159,7 +168,11 @@ adjust_column_width(non_outliers_sheet, {'A': 15, 'B': 35, 'C': 32, 'D': 12})
 align_cells(non_outliers_sheet, ['A', 'B', 'C', 'D'], Alignment(horizontal='center'))
 
 
+invalid_chars = ['/', '\\', '?', '*', '[', ']', ':']
+
 for department, df in department_dfs.items():
+    for char in invalid_chars:
+        department = department.replace(char, '_')
     sheetname = department[:31]  #Sheet names can't be longer than 31 characters or Excel breaks
     wb.create_sheet(title=sheetname)
     create_pie_charts(df, wb, sheetname)
@@ -168,4 +181,3 @@ for department, df in department_dfs.items():
 wb.save("analysis.xlsx")
 
 input("\n\nAll tasks completed. Press enter to close.")
-
