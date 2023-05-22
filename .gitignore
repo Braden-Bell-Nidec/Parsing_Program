@@ -365,5 +365,5 @@ FodyWeavers.xsd
 
 #Custom
 *.csv
-*.xlms
+*.xlxs
 *.xlmx
