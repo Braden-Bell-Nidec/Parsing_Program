@@ -40,7 +40,7 @@ To use the Parsing Program:
 
 ## Versioning
 
-This is version 3.5 of the Parsing Program. For transparency and insight into our release cycle, and for striving to maintain backward compatibility, this project will be maintained under the Semantic Versioning guidelines as much as possible.
+This is version 3.5 of the Parsing Program.
 
 ## Authors
 
@@ -48,11 +48,3 @@ The Parsing Program was developed by:
 
 - Braden Bell
 - ChatGPT-4 (OpenAI)
-
-## License
-
-Please contact the authors for licensing information.
-
-## Acknowledgments
-
-We would like to express our thanks to the OpenAI community for providing support and resources to make this project possible.
