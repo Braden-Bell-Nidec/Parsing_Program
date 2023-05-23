@@ -1,9 +1,58 @@
-Braden Bell
-05-22-23
-Description:
-This Python script is designed to perform an analysis of job responsibilities within various departments of an organization. 
-The user is first asked to input a file name and an outlier percentage threshold, which assists in identifying responsibilities 
-that occur less frequently, or outliers. 
+# Parsing Program
+
+This program is a utility designed to facilitate the combination and parsing of Excel files for specific data analysis tasks. It accepts multiple Excel files as inputs, merges them, processes the data, and outputs the results into a new Excel file. The application is intended to be simple to use, efficient, and adaptable for various datasets.
+
+## Getting Started
+
+These instructions will help you get a copy of the project up and running on your local machine for development and testing purposes.
+
+### Prerequisites
+
+The Parsing Program requires the following Python packages:
+
+- pandas
+- numpy
+- openpyxl
+
+You can install these packages using pip:
+
+```bash
+pip install pandas numpy openpyxl
+```
 
 
-#TODO: Add the try-except blocks suggested by GPT-4
+### Installation
+
+Currently, there is no installation process as the program is a standalone Python script. You can download the script and run it directly on your machine.
+
+## Usage
+
+To use the Parsing Program:
+
+1. Prepare your Excel files, ensuring they are in the correct format for parsing.
+2. Run the Python script in a terminal or command prompt with the correct file names as command-line arguments:
+
+    ```
+    python Combiner.py <filename1.xlsx> <filename2.xlsx> ...
+    ```
+
+3. The program will combine the Excel files, process the data, and output the results into a new Excel file.
+
+## Versioning
+
+This is version 3.5 of the Parsing Program. For transparency and insight into our release cycle, and for striving to maintain backward compatibility, this project will be maintained under the Semantic Versioning guidelines as much as possible.
+
+## Authors
+
+The Parsing Program was developed by:
+
+- Braden Bell
+- ChatGPT-4 (OpenAI)
+
+## License
+
+Please contact the authors for licensing information.
+
+## Acknowledgments
+
+We would like to express our thanks to the OpenAI community for providing support and resources to make this project possible.
