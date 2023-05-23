@@ -47,4 +47,4 @@ This is version 3.5 of the Parsing Program.
 The Parsing Program was developed by:
 
 - Braden Bell
-- ChatGPT-4 (OpenAI)
+- ChatGPT-4 May 12th Version (OpenAI)
