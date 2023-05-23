@@ -1,6 +1,8 @@
 from openpyxl.chart import PieChart, Reference
 from openpyxl.utils.dataframe import dataframe_to_rows
 from openpyxl.styles import Alignment
+import pandas as pd
+import re
 
 
 def adjust_column_width(sheet, cols_width_dict):
@@ -56,37 +58,92 @@ def append_dataframe_to_sheet(sheet, df):
     for row in dataframe_to_rows(df, index=False, header=True):
         sheet.append(row)
 
-
-def get_responsibility_data(df):
+def split_and_explode(df, column, delimiter=';'):
     """
-    Retrieves responsibility data from a given DataFrame.
+    Splits the values in a column based on a delimiter and returns a DataFrame where each row contains a single value from the split data.
 
     Args:
-        df (DataFrame): A pandas DataFrame to retrieve responsibility data from.
+        df (DataFrame): The DataFrame containing the column to split.
+        column (str): The column to split.
+        delimiter (str): The delimiter to use for splitting the column.
 
     Returns:
-        DataFrame: A DataFrame containing responsibility data.
+        DataFrame: A DataFrame where each row contains a single value from the split data.
+    """
+    s = df[column].str.split(delimiter).apply(pd.Series, 1).stack()
+    s.index = s.index.droplevel(-1)
+    s.name = column
+    return df.drop(columns=column).join(s)
+
+
+def get_responsibility_and_member_of_data(df):
+    """
+    Retrieves responsibility and 'Member of' data from a given DataFrame.
+
+    Args:
+        df (DataFrame): A pandas DataFrame to retrieve responsibility and 'Member of' data from.
+
+    Returns:
+        DataFrame: A DataFrame containing responsibility and 'Member of' data.
 
     Raises:
-        KeyError: If 'RESPONSIBILITY_NAME' column doesn't exist in the DataFrame.
+        KeyError: If 'RESPONSIBILITY_NAME' or 'MEMBER_OF' column doesn't exist in the DataFrame.
     """
     responsibilities = df['RESPONSIBILITY_NAME'].value_counts().reset_index()
     responsibilities.columns = ['RESPONSIBILITY_NAME', 'COUNTS']
-    return responsibilities
+
+    member_of_df = split_and_explode(df, 'MEMBER_OF')
+    member_of = member_of_df['MEMBER_OF'].value_counts().reset_index()
+    member_of.columns = ['MEMBER_OF', 'COUNTS_MEMBER_OF']
+
+    return responsibilities, member_of
 
 
-def create_pie_charts(df, wb, sheetname):
+def create_pie_charts(df, ws):
     """
     Creates pie charts in a worksheet. It also contains formatting data.
 
     Args:
-        df (DataFrame): A pandas DataFrame containing responsibility data.
-        wb (Workbook): An openpyxl workbook object.
-        sheetname (str): The name of the worksheet to create the pie charts in.
+        df (DataFrame): A pandas DataFrame containing responsibility and 'Member of' data.
+        ws (Worksheet): An openpyxl worksheet object.
     """
-    ws = wb[sheetname]
-    responsibilities = get_responsibility_data(df)
+    responsibilities, member_of = get_responsibility_and_member_of_data(df)
+    
     append_dataframe_to_sheet(ws, responsibilities)
     adjust_column_width(ws, {'A': 45, 'B': 10})
     align_cells(ws, ['B'], Alignment(horizontal='center'))
     create_pie_chart(ws, responsibilities)
+
+    # Add some space between the two tables
+    ws.append([])
+    
+    append_dataframe_to_sheet(ws, member_of)
+    adjust_column_width(ws, {'A': 45, 'B': 10})
+    align_cells(ws, ['B'], Alignment(horizontal='center'))
+    create_pie_chart(ws, member_of)
+
+
+
+def sanitize_sheet_name(sheet_name):
+    invalid_chars = ['\\', '/', '*', '[', ']', ':', '?']
+    for char in invalid_chars:
+        sheet_name = sheet_name.replace(char, '')
+    sheet_name = sheet_name.replace(' ', '_')
+    sheet_name = sheet_name[:31]  # Trim to 31 characters
+    return sheet_name
+
+
+def create_job_title_sheets_and_charts(df, wb):
+    """
+    Creates a worksheet for each job title in the DataFrame.
+    Each worksheet contains a pie chart and a table with responsibility data.
+
+    Args:
+        df (DataFrame): A pandas DataFrame containing user responsibility data.
+        wb (Workbook): An openpyxl workbook object.
+    """
+    for job_title, group in df.groupby('JOB_TITLE'):
+        sanitized_job_title = sanitize_sheet_name(job_title)
+        ws = wb.create_sheet(title=sanitized_job_title)  # Save the reference to the created sheet
+        create_pie_charts(group, ws)  # Pass the sheet directly
+

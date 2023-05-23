@@ -133,14 +133,7 @@ except Exception as e:
     input("Press enter to close.")
     exit()
 
-invalid_chars = ['/', '\\', '?', '*', '[', ']', ':']
-
-for department, df in department_dfs.items():
-    for char in invalid_chars:
-        department = department.replace(char, '_')
-    sheetname = department[:31]  # Sheet names can't be longer than 31 characters or Excel breaks
-    wb.create_sheet(title=sheetname)
-    ef.create_pie_charts(df, wb, sheetname)
+ef.create_job_title_sheets_and_charts(df, wb)
 
 # Save changes to the sheet
 try:
