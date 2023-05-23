@@ -156,9 +156,6 @@ except PermissionError:
 except Exception as e:
     print(f"Error saving file! Details: {e}")
 
-    
-
-
 # Clean up temp file
 delete_temp('combined.xlsx')
 
