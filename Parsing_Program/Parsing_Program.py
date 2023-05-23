@@ -1,13 +1,13 @@
 import pandas as pd
 import openpyxl as pyxl
-import os
 from Combiner import merge_files
+from Combiner import delete_temp
 import Excel_Functions as ef
 
 DEFAULT_PERCENT = 0.07  # The default outlier percentage threshold
 
 # Set terminal output options
-pd.set_option('display.max_rows', None)
+#pd.set_option('display.max_rows', None)
 pd.set_option('display.max_colwidth', None)
 
 # Get file names from user
@@ -61,12 +61,16 @@ for department in df['DEPARTMENT'].drop_duplicates().values:
     department_dfs[department] = df[df['DEPARTMENT'] == department]
 
 # Calculate counts and percentages
-counts = df.groupby(['DEPARTMENT', 'JOB_TITLE', 'RESPONSIBILITY_NAME']).size().reset_index(name='counts')
-total_counts = counts.groupby(['DEPARTMENT', 'JOB_TITLE'])['counts'].sum().reset_index(name='total_counts')
-counts = pd.merge(counts, total_counts, on=['DEPARTMENT', 'JOB_TITLE'])
-counts['percentage'] = counts['counts'] / counts['total_counts']
-
-outliers = counts[counts['percentage'] < userPercent]  # Calculate the outliers
+try:
+    counts = df.groupby(['DEPARTMENT', 'JOB_TITLE', 'RESPONSIBILITY_NAME']).size().reset_index(name='counts')
+    total_counts = counts.groupby(['DEPARTMENT', 'JOB_TITLE'])['counts'].sum().reset_index(name='total_counts')
+    counts = pd.merge(counts, total_counts, on=['DEPARTMENT', 'JOB_TITLE'])
+    counts['percentage'] = counts['counts'] / counts['total_counts']
+    outliers = counts[counts['percentage'] < userPercent]  # Calculate the outliers
+except Exception as e:
+    print(f"Error calculating counts and percentages! Details: {e}")
+    input("Press enter to close.")
+    exit()
 
 # Prepare outlier data
 outlier_users_list = []
@@ -106,26 +110,30 @@ for _, row in counts.iterrows():
 non_outliers = pd.DataFrame(non_outlier_list)
 print("\n\n-==================== Non-Outliers ====================-")
 print(non_outliers)  # Print non-outlier DataFrame data to terminal
+try:
+    # Prepare to write to excel
+    wb = pyxl.Workbook()  # Open workbook
+    wb.remove(wb.active)  # Remove the default sheet
 
-# Prepare to write to excel
-wb = pyxl.Workbook()  # Open workbook
-wb.remove(wb.active)  # Remove the default sheet
+    # Create and populate the outlier sheet
+    outliers_sheet = wb.create_sheet(title='Outliers')
+    ef.append_dataframe_to_sheet(outliers_sheet, outlier_users)
 
-# Create and populate the outlier sheet
-outliers_sheet = wb.create_sheet(title='Outliers')
-ef.append_dataframe_to_sheet(outliers_sheet, outlier_users)
+    # Format the outlier sheet
+    ef.adjust_column_width(outliers_sheet, {'A': 15, 'B': 15, 'C': 35, 'D': 42, 'E': 12})
+    ef.align_cells(outliers_sheet, ['A', 'B', 'C', 'D'], ef.Alignment(horizontal='center'))
 
-# Format the outlier sheet
-ef.adjust_column_width(outliers_sheet, {'A': 15, 'B': 15, 'C': 35, 'D': 42, 'E': 12})
-ef.align_cells(outliers_sheet, ['A', 'B', 'C', 'D'], ef.Alignment(horizontal='center'))
+    # Create and populate the non-outlier sheet
+    non_outliers_sheet = wb.create_sheet(title='Non-Outliers')
+    ef.append_dataframe_to_sheet(non_outliers_sheet, non_outliers)
 
-# Create and populate the non-outlier sheet
-non_outliers_sheet = wb.create_sheet(title='Non-Outliers')
-ef.append_dataframe_to_sheet(non_outliers_sheet, non_outliers)
-
-# Format non-outlier sheet
-ef.adjust_column_width(non_outliers_sheet, {'A': 15, 'B': 35, 'C': 32, 'D': 12})
-ef.align_cells(non_outliers_sheet, ['A', 'B', 'C', 'D'], ef.Alignment(horizontal='center'))
+    # Format non-outlier sheet
+    ef.adjust_column_width(non_outliers_sheet, {'A': 15, 'B': 35, 'C': 32, 'D': 12})
+    ef.align_cells(non_outliers_sheet, ['A', 'B', 'C', 'D'], ef.Alignment(horizontal='center'))
+except Exception as e:
+    print(f"Error preparing Excel workbook! Details: {e}")
+    input("Press enter to close.")
+    exit()
 
 invalid_chars = ['/', '\\', '?', '*', '[', ']', ':']
 
@@ -152,9 +160,6 @@ except Exception as e:
 
 
 # Clean up temp file
-try:
-    os.remove('combined.xlsx')
-except:
-    print("WARN: could not delete temp file.")
+delete_temp('combined.xlsx')
 
 input("\n\nAll tasks completed. Press enter to close.")
