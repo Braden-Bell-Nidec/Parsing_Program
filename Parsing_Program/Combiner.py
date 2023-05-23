@@ -2,6 +2,20 @@ import pandas as pd
 import os
 
 def merge_files(epga_file, ad_file, output_file):
+    """
+    This function merges the provided EPGA Excel file and the Active Directory CSV file.
+    
+    Args:
+        epga_file (str): The name of the EPGA Excel file.
+        ad_file (str): The name of the Active Directory CSV file.
+        output_file (str): The name of the output file where the merged data will be written.
+        
+    Returns:
+        output_file (str): The name of the output file containing the merged data.
+        
+    Raises:
+        ValueError: If either the EPGA file or the Active Directory file is not formatted correctly.
+    """
     try:
         epga = pd.read_excel(epga_file)
     except pd.errors.ParserError:
@@ -33,6 +47,18 @@ def merge_files(epga_file, ad_file, output_file):
     return output_file
 
 def delete_temp(tempFile):
+    """
+    This function attempts to delete the specified temporary file.
+    
+    Args:
+        tempFile (str): The name of the temporary file to delete.
+        
+    Returns:
+        None.
+        
+    Prints:
+        A warning message if the temporary file could not be deleted.
+    """
     try:
         os.remove(tempFile)
     except:

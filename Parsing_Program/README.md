@@ -30,13 +30,13 @@ Currently, there is no installation process as the program is a standalone Pytho
 To use the Parsing Program:
 
 1. Prepare your Excel files, ensuring they are in the correct format for parsing.
-2. Run the Python script in a terminal or command prompt with the correct file names as command-line arguments:
+2. Run the Python script in a terminal or command prompt:
 
     ```
-    python Combiner.py <filename1.xlsx> <filename2.xlsx> ...
+    python Parsing_Program.py...
     ```
 
-3. The program will combine the Excel files, process the data, and output the results into a new Excel file.
+3. The program will ask for the Excel files, process the data, and output the results into a new Excel file.
 
 ## Versioning
 

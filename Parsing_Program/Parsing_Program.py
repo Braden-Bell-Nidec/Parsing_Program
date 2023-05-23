@@ -40,8 +40,6 @@ except Exception as e:
     print("Press enter to close.")
     exit()
 
-
-
 # Get outlier percentage from user
 userPercent = input("Enter outlier percentage threshold (default is 7%): ")
 if userPercent == "":
@@ -155,9 +153,6 @@ except PermissionError:
     exit()
 except Exception as e:
     print(f"Error saving file! Details: {e}")
-
-    
-
 
 # Clean up temp file
 delete_temp('combined.xlsx')
