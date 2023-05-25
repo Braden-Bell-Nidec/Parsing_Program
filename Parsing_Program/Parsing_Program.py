@@ -87,7 +87,7 @@ for _, outlier in outliers.iterrows():
         })
 
 outlier_users = pd.DataFrame(outlier_users_list)
-print("\n\n-=================================== Possible Outliers ===================================-")
+print("\n\n-========================================= Possible Outliers =========================================-")
 print(outlier_users)  # Print outlier data to terminal
 
 # Prepare non-outlier data
@@ -106,7 +106,7 @@ for _, row in counts.iterrows():
         })
 
 non_outliers = pd.DataFrame(non_outlier_list)
-print("\n\n-==================== Non-Outliers ====================-")
+print("\n\n-=========================================== Non-Outliers ===========================================-")
 print(non_outliers)  # Print non-outlier DataFrame data to terminal
 try:
     # Prepare to write to excel
@@ -115,7 +115,7 @@ try:
 
     # Create and populate the outlier sheet
     outliers_sheet = wb.create_sheet(title='Outliers')
-    ef.append_dataframe_to_sheet(outliers_sheet, outlier_users)
+    ef.append_dataframe_to_sheet(outliers_sheet, outlier_users, start_row=1, start_col=1)
 
     # Format the outlier sheet
     ef.adjust_column_width(outliers_sheet, {'A': 15, 'B': 15, 'C': 35, 'D': 42, 'E': 12})
@@ -123,7 +123,7 @@ try:
 
     # Create and populate the non-outlier sheet
     non_outliers_sheet = wb.create_sheet(title='Non-Outliers')
-    ef.append_dataframe_to_sheet(non_outliers_sheet, non_outliers)
+    ef.append_dataframe_to_sheet(non_outliers_sheet, non_outliers, start_row=1, start_col=1)
 
     # Format non-outlier sheet
     ef.adjust_column_width(non_outliers_sheet, {'A': 15, 'B': 35, 'C': 32, 'D': 12})
@@ -148,6 +148,6 @@ except Exception as e:
     print(f"Error saving file! Details: {e}")
 
 # Clean up temp file
-#delete_temp('combined.xlsx')
+delete_temp('combined.xlsx')
 
 input("\n\nAll tasks completed. Press enter to close.")

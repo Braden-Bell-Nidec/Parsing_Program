@@ -2,7 +2,6 @@ from openpyxl.chart import PieChart, Reference
 from openpyxl.utils.dataframe import dataframe_to_rows
 from openpyxl.styles import Alignment
 import pandas as pd
-import re
 
 
 def adjust_column_width(sheet, cols_width_dict):
@@ -51,16 +50,26 @@ def create_excel_pie_chart(sheet, df, min_col, max_col, chart_location):
     sheet.add_chart(chart, chart_location)
 
 
-def append_dataframe_to_sheet(sheet, df):
+def append_dataframe_to_sheet(ws, df, start_row=1, start_col=1):
     """
-    Appends all rows of a DataFrame to a given worksheet.
+    Appends a pandas DataFrame to a worksheet. DataFrame values start at the specified row and column.
 
     Args:
-        sheet (Worksheet): An openpyxl worksheet object.
-        df (DataFrame): A pandas DataFrame to append.
+        ws (Worksheet): An openpyxl worksheet object.
+        df (DataFrame): A pandas DataFrame.
+        start_row (int): The row index where the dataframe should start.
+        start_col (int): The column index where the dataframe should start.
     """
-    for row in dataframe_to_rows(df, index=False, header=True):
-        sheet.append(row)
+
+    # Write data from the DataFrame to the worksheet
+    for i, row in enumerate(df.values, start=1):  # Starting index from 1
+        for j, item in enumerate(row, start=1):  # Starting index from 1
+            ws.cell(row=start_row+i-1, column=start_col+j-1, value=item)
+
+    # Write column names to the worksheet
+    for j, col_name in enumerate(df.columns, start=1):  # Starting index from 1
+        ws.cell(row=start_row, column=start_col+j-1, value=col_name)
+
 
 def split_and_explode(df, column, delimiter=';'):
     """
@@ -113,53 +122,73 @@ def create_pie_charts(df, ws):
     """
     responsibilities, member_of = get_responsibility_and_member_of_data(df)
 
-    # Adding responsibilities data
-    for i, row in enumerate(dataframe_to_rows(responsibilities, index=False, header=True)):
-        for j, value in enumerate(row):
-            ws.cell(row=i+1, column=j+1, value=value)
-
+    append_dataframe_to_sheet(ws, responsibilities, start_row=2, start_col=2)
     adjust_column_width(ws, {'A': 45, 'B': 10})
     align_cells(ws, ['B'], Alignment(horizontal='center'))
     create_excel_pie_chart(ws, responsibilities, min_col=1, max_col=2, chart_location="F1")
 
-    # Add some space between the two tables
-    ws.append([])
-
-    # Adding member_of data
-    for i, row in enumerate(dataframe_to_rows(member_of, index=False, header=True)):
-        for j, value in enumerate(row):
-            ws.cell(row=i+1+responsibilities.shape[0]+2, column=j+3, value=value)
-
+    append_dataframe_to_sheet(ws, member_of, start_row=2, start_col=4)
     adjust_column_width(ws, {'C': 45, 'D': 10})
     align_cells(ws, ['D'], Alignment(horizontal='center'))
     create_excel_pie_chart(ws, member_of, min_col=3, max_col=4, chart_location="F16")
 
 
-
-
-
 def sanitize_sheet_name(sheet_name):
-    invalid_chars = ['\\', '/', '*', '[', ']', ':', '?']
+    invalid_chars = ['\\', '/', '*', '[', ']', ':', '?', ' ']
+    abbreviation_dict = {
+        'Manager' : 'Mgr',
+        'Associate': 'Assoc',
+        'I': '1',
+        'II': '2',
+        'III': '3',
+        'Information Technology': 'IT',
+        'Technician': 'Tech',
+        'Mechanical' : 'Mech',
+        'Certification' : 'Cert',
+        'Senior' : 'Sr.',
+        'Human Resources': 'HR',
+        'President': 'Pres',
+        'Engineer': 'Eng',
+        'Operations': 'Op'
+        }
+
+    for word in sheet_name.split():
+        if word in abbreviation_dict:
+            sheet_name = sheet_name.replace(word, abbreviation_dict[word])
+
     for char in invalid_chars:
         sheet_name = sheet_name.replace(char, '')
-        sheet_name = sheet_name[:31]  # Truncate to 31 characters
-    return sheet_name[:31]
+    
+    # If sheet_name is empty string after removing invalid chars, replace it with "Unnamed"
+    if sheet_name == "":
+        sheet_name = "Unnamed"
+    
+    # Truncate to 31 characters
+    sheet_name = sheet_name[:31]
+
+    return sheet_name
 
 
 def create_job_title_sheets_and_charts(df, wb):
-    """
-    Creates a worksheet for each job title in the DataFrame.
-    Each worksheet contains a pie chart and a table with responsibility data.
+    job_titles = df['JOB_TITLE'].unique()
 
-    Args:
-        df (DataFrame): A pandas DataFrame containing user responsibility data.
-        wb (Workbook): An openpyxl workbook object.
-    """
-    # sanitize 'JOB_TITLE' values directly in DataFrame
-    df['JOB_TITLE'] = df['JOB_TITLE'].apply(sanitize_sheet_name)
-    
-    for job_title, group in df.groupby('JOB_TITLE'):
-        ws = wb.create_sheet(title=job_title)  # Save the reference to the created sheet
-        create_pie_charts(group, ws)  # Pass the sheet directly
+    for title in job_titles:
+        #print(f"Original title: {title}")  # Debug line
+        sanitized_title = sanitize_sheet_name(title)
+        #print(f"Sanitized title: {sanitized_title}")  # Debug line
+        ws = wb.create_sheet(title=sanitized_title)
+
+        group = df[df['JOB_TITLE'] == title]
+
+        create_pie_charts(group, ws)
+
+    # If the default 'Sheet' exists, remove it
+    if 'Sheet' in wb:
+        wb.remove(wb['Sheet'])
+
+
+
+
+
 
 
