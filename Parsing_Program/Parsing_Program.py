@@ -1,9 +1,11 @@
 #Import required modules
 import pandas as pd
 import openpyxl as pyxl
+import Excel_Functions as ef
+from sys import exit
 from Combiner import merge_files
 from Combiner import delete_temp
-import Excel_Functions as ef
+
 
 DEFAULT_PERCENT = 0.07  #Default outlier percentage threshold
 

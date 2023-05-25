@@ -26,6 +26,7 @@
     <Compile Include="Parsing_Program.py" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Parsing_Program.exe" />
     <Content Include="README.md" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />
