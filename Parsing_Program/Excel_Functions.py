@@ -31,21 +31,25 @@ def align_cells(sheet, cols, alignment):
             cell.alignment = alignment
 
 
-def create_pie_chart(sheet, responsibilities):
+def create_excel_pie_chart(sheet, df, min_col, max_col, chart_location):
     """
     Creates a pie chart in the specified worksheet based on the responsibility data.
 
     Args:
         sheet (Worksheet): An openpyxl worksheet object.
-        responsibilities (DataFrame): A pandas DataFrame containing responsibility data.
+        df (DataFrame): A pandas DataFrame containing responsibility data.
+        min_col (int): Minimum column index for the data to be charted.
+        max_col (int): Maximum column index for the data to be charted.
+        chart_location (str): Excel-style cell reference for the location of the chart.
     """
     chart = PieChart()
-    labels = Reference(sheet, min_col=1, min_row=2, max_row=len(responsibilities)+1)
-    data = Reference(sheet, min_col=2, min_row=1, max_row=len(responsibilities)+1)
+    labels = Reference(sheet, min_col=min_col, min_row=2, max_row=len(df)+1)
+    data = Reference(sheet, min_col=max_col, min_row=1, max_row=len(df)+1)
     chart.add_data(data, titles_from_data=True)
     chart.set_categories(labels)
-    chart.title = 'Responsibility Distribution'
-    sheet.add_chart(chart, "C1")
+    chart.title = 'Responsibility Distribution' if min_col==1 else 'Member Of Distribution'
+    sheet.add_chart(chart, chart_location)
+
 
 def append_dataframe_to_sheet(sheet, df):
     """
@@ -92,7 +96,7 @@ def get_responsibility_and_member_of_data(df):
     responsibilities = df['RESPONSIBILITY_NAME'].value_counts().reset_index()
     responsibilities.columns = ['RESPONSIBILITY_NAME', 'COUNTS']
 
-    member_of_df = split_and_explode(df, 'MEMBER_OF')
+    member_of_df = split_and_explode(df, 'MEMBER_OF')    
     member_of = member_of_df['MEMBER_OF'].value_counts().reset_index()
     member_of.columns = ['MEMBER_OF', 'COUNTS_MEMBER_OF']
 
@@ -108,19 +112,29 @@ def create_pie_charts(df, ws):
         ws (Worksheet): An openpyxl worksheet object.
     """
     responsibilities, member_of = get_responsibility_and_member_of_data(df)
-    
-    append_dataframe_to_sheet(ws, responsibilities)
+
+    # Adding responsibilities data
+    for i, row in enumerate(dataframe_to_rows(responsibilities, index=False, header=True)):
+        for j, value in enumerate(row):
+            ws.cell(row=i+1, column=j+1, value=value)
+
     adjust_column_width(ws, {'A': 45, 'B': 10})
     align_cells(ws, ['B'], Alignment(horizontal='center'))
-    create_pie_chart(ws, responsibilities)
+    create_excel_pie_chart(ws, responsibilities, min_col=1, max_col=2, chart_location="F1")
 
     # Add some space between the two tables
     ws.append([])
-    
-    append_dataframe_to_sheet(ws, member_of)
-    adjust_column_width(ws, {'A': 45, 'B': 10})
-    align_cells(ws, ['B'], Alignment(horizontal='center'))
-    create_pie_chart(ws, member_of)
+
+    # Adding member_of data
+    for i, row in enumerate(dataframe_to_rows(member_of, index=False, header=True)):
+        for j, value in enumerate(row):
+            ws.cell(row=i+1+responsibilities.shape[0]+2, column=j+3, value=value)
+
+    adjust_column_width(ws, {'C': 45, 'D': 10})
+    align_cells(ws, ['D'], Alignment(horizontal='center'))
+    create_excel_pie_chart(ws, member_of, min_col=3, max_col=4, chart_location="F16")
+
+
 
 
 
@@ -128,9 +142,8 @@ def sanitize_sheet_name(sheet_name):
     invalid_chars = ['\\', '/', '*', '[', ']', ':', '?']
     for char in invalid_chars:
         sheet_name = sheet_name.replace(char, '')
-    sheet_name = sheet_name.replace(' ', '_')
-    sheet_name = sheet_name[:31]  # Trim to 31 characters
-    return sheet_name
+        sheet_name = sheet_name[:31]  # Truncate to 31 characters
+    return sheet_name[:31]
 
 
 def create_job_title_sheets_and_charts(df, wb):
@@ -142,8 +155,11 @@ def create_job_title_sheets_and_charts(df, wb):
         df (DataFrame): A pandas DataFrame containing user responsibility data.
         wb (Workbook): An openpyxl workbook object.
     """
+    # sanitize 'JOB_TITLE' values directly in DataFrame
+    df['JOB_TITLE'] = df['JOB_TITLE'].apply(sanitize_sheet_name)
+    
     for job_title, group in df.groupby('JOB_TITLE'):
-        sanitized_job_title = sanitize_sheet_name(job_title)
-        ws = wb.create_sheet(title=sanitized_job_title)  # Save the reference to the created sheet
+        ws = wb.create_sheet(title=job_title)  # Save the reference to the created sheet
         create_pie_charts(group, ws)  # Pass the sheet directly
+
 
