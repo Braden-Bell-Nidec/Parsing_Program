@@ -1,6 +1,5 @@
 import pandas as pd
 import os
-
 def merge_files(epga_file, ad_file, output_file):
     """
     This function merges the provided EPGA Excel file and the Active Directory CSV file.
@@ -26,25 +25,27 @@ def merge_files(epga_file, ad_file, output_file):
     except pd.errors.ParserError:
         raise ValueError(f"The Active Directory file '{ad_file}' is not formatted correctly.\nPlease ensure it is a valid CSV file with expected column names.")
 
-    # Convert the "SAM Account Name" column to uppercase for case-insensitive match
+    # Convert the "SAM Account Name" and 'Member of' columns to uppercase for case-insensitive match
     ad['SAM Account Name'] = ad['SAM Account Name'].str.upper()
+    ad['Member of'] = ad['Member of'].str.upper()
 
     # Merge the two DataFrames on the user name columns
     combined = pd.merge(epga, ad, left_on='USER_NAME', right_on='SAM Account Name', how='inner')
 
     # Select the columns we are interested in
-    combined = combined[['Department', 'USER_NAME', 'RESPONSIBILITY_NAME', 'Title']]
+    combined = combined[['Department', 'USER_NAME', 'RESPONSIBILITY_NAME', 'Title', 'Member of']]
 
     # Replace '-' values with "Unknown"
     combined['Department'] = combined['Department'].replace('-', 'Unknown')
     combined['Title'] = combined['Title'].replace('-', 'Unknown')
 
     # Rename the columns to the desired names
-    combined.columns = ['DEPARTMENT', 'USER_NAME', 'RESPONSIBILITY_NAME', 'JOB_TITLE']
+    combined.columns = ['DEPARTMENT', 'USER_NAME', 'RESPONSIBILITY_NAME', 'JOB_TITLE', 'MEMBER_OF']
 
     # Write the combined DataFrame to a new Excel file
     combined.to_excel(output_file, index=False)
     return output_file
+
 
 def delete_temp(tempFile):
     """
