@@ -4,7 +4,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>14886495-9eb1-47ab-9bd5-0e0148cda476</ProjectGuid>
     <ProjectHome>.</ProjectHome>
-    <StartupFile>Parsing_Program.py</StartupFile>
+    <StartupFile>Parser.py</StartupFile>
     <SearchPath>
     </SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
@@ -23,7 +23,8 @@
   <ItemGroup>
     <Compile Include="Combiner.py" />
     <Compile Include="Excel_Functions.py" />
-    <Compile Include="Parsing_Program.py" />
+    <Compile Include="GUI.py" />
+    <Compile Include="Parser.py" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Parsing_Program.exe" />

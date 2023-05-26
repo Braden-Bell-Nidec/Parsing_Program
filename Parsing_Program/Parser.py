@@ -5,7 +5,7 @@ import Excel_Functions as ef
 from sys import exit
 from Combiner import merge_files
 from Combiner import delete_temp
-
+from GUI import run_gui, update_output
 
 DEFAULT_PERCENT = 0.07  #Default outlier percentage threshold
 
@@ -13,26 +13,21 @@ DEFAULT_PERCENT = 0.07  #Default outlier percentage threshold
 #pd.set_option('display.max_rows', None) #Debug line
 pd.set_option('display.max_colwidth', None)
 
+
 #Get EPGA data file and Active Directory file names from user respectively.
 #Add file extension if user does not include it
-EPGA_File = input("Enter path of EPGA file: ")
-if not EPGA_File.endswith('.xlsx'):
-    EPGA_File += '.xlsx'
-
-AD_File = input("Enter path of Active Directory file: ")
-if not AD_File.endswith('.csv'):
-    AD_File += '.csv'
+EPGA_File, AD_File, delete_combined, user_percent = run_gui()
 
 #Attempt to combine the given EPGA and Active Directory files into one .xlsx file
 try:
     fileName = merge_files(EPGA_File, AD_File, 'combined.xlsx')
 except PermissionError: #This *shouldn't* be a common trip because Excel only disallows writing to files while open, but if there's some other program that has it tied up this should catch it.
-    print(f"Permission denined when trying to access one of the files {EPGA_File} or {AD_File}")
-    print("This is usually cased by one or more of the files being used by another program.")
-    print("Please close the program(s) and try again.")
+    update_output(f"Permission denined when trying to access one of the files {EPGA_File} or {AD_File}")
+    update_output("This is usually cased by one or more of the files being used by another program.")
+    update_output("Please close the program(s) and try again.")
     input("Press enter to close.")
 except Exception as e: 
-    print(f"Error merging files! Details: {e}")
+    update_output(f"Error merging files! Details: {e}")
     input("Press enter to close.")
     exit()
 
@@ -40,24 +35,24 @@ except Exception as e:
 try:
     df = pd.read_excel(fileName)
 except Exception as e: 
-    print(f"Error reading the merged Excel file! Details: {e}")
-    print("Press enter to close.")
+    update_output(f"Error reading the merged Excel file! Details: {e}")
+    update_output("Press enter to close.")
     exit()
 
 #Get custom outlier percentage from user and validate the input
-userPercent = input("Enter outlier percentage threshold (default is 7%): ")
-if userPercent == "": #If the user just presses enter it uses default case. This is intentional.
-    userPercent = DEFAULT_PERCENT #Defined at top of program
+#user_percent = input("Enter outlier percentage threshold (default is 7%): ")
+if user_percent == "": #If the user just presses enter it uses default case. This is intentional.
+    user_percent = DEFAULT_PERCENT #Defined at top of program
 else:
     try:
-        userPercent = abs(float(userPercent) / 100.00) #Convert the user's percent to decimal format
+        user_percent = abs(float(user_percent) / 100.00) #Convert the user's percent to decimal format
     except ValueError:
-        print("Input value error, resorting to default")
-        userPercent = DEFAULT_PERCENT
+        update_output("Input value error, resorting to default")
+        user_percent = DEFAULT_PERCENT
     except Exception as e:
-        print(f"An unknown error occured! Details: {e}")
-        print("Resorting to default value and attempting to continue...")
-        userPercent = DEFAULT_PERCENT
+        update_output(f"An unknown error occured! Details: {e}")
+        update_output("Resorting to default value and attempting to continue...")
+        user_percent = DEFAULT_PERCENT
 
 #Create a dictionary of DataFrames for each unique department in the DataFrame
 department_dfs = {}
@@ -72,9 +67,9 @@ try:
     total_counts = counts.groupby(['DEPARTMENT', 'JOB_TITLE'])['counts'].sum().reset_index(name='total_counts')
     counts = pd.merge(counts, total_counts, on=['DEPARTMENT', 'JOB_TITLE'])
     counts['percentage'] = counts['counts'] / counts['total_counts']
-    outliers = counts[counts['percentage'] < userPercent]  #Calculate outliers
+    outliers = counts[counts['percentage'] < user_percent]  #Calculate outliers
 except Exception as e:
-    print(f"Error calculating counts and percentages! Details: {e}")
+    update_output(f"Error calculating counts and percentages! Details: {e}")
     input("Press enter to close.")
     exit()
 
@@ -96,8 +91,8 @@ for _, outlier in outliers.iterrows():
 
 #Put the outlier user list into a DataFrame
 outlier_users = pd.DataFrame(outlier_users_list)
-print("\n\n-========================================= Possible Outliers =========================================-")
-print(outlier_users)  #Print outlier DataFrame to terminal
+update_output("\n\n-========================================= Possible Outliers =========================================-")
+update_output(outlier_users)  #update_output outlier DataFrame to terminal
 
 #Prepare non-outlier data, i.e., data that does *not* meet the outlier criteria (user's custom percentage)
 non_outlier_list = []
@@ -115,8 +110,8 @@ for _, row in counts.iterrows():
         })
 
 non_outliers = pd.DataFrame(non_outlier_list)
-print("\n\n-=========================================== Non-Outliers ===========================================-")
-print(non_outliers)  #Print non-outlier DataFrame data to terminal
+update_output("\n\n-=========================================== Non-Outliers ===========================================-")
+update_output(non_outliers)  #update_output non-outlier DataFrame data to terminal
 try:
     #Prepare to write data to an Excel .xlsx
     wb = pyxl.Workbook()  #Create new workbook
@@ -138,7 +133,7 @@ try:
     ef.adjust_column_width(non_outliers_sheet, {'A': 15, 'B': 35, 'C': 32, 'D': 12})
     ef.align_cells(non_outliers_sheet, ['A', 'B', 'C', 'D'], ef.Alignment(horizontal='center'))
 except Exception as e:
-    print(f"Error preparing Excel workbook! Details: {e}")
+    update_output(f"Error preparing Excel workbook! Details: {e}")
     input("Press enter to close.")
     exit()
 
@@ -149,18 +144,19 @@ ef.create_job_title_sheets_and_charts(df, wb)
 try:
     wb.save("analysis.xlsx")
 except PermissionError: #I kept forgetting to close the previous analysis.xlsx file when developing this program so I figured someone else may run into this issue as well at some point
-    print("Permission denied when trying to save results to file!")
-    print("This is ususally caused by another file called 'analysis.xlsx' being open in Excel (or another program) in the current working directory.")
-    print("If a previous analysis.xlsx file is open in Excel (or another program), close the file and save it to another directory if you do not want it to be overwritten!")
+    update_output("Permission denied when trying to save results to file!")
+    update_output("This is ususally caused by another file called 'analysis.xlsx' being open in Excel (or another program) in the current working directory.")
+    update_output("If a previous analysis.xlsx file is open in Excel (or another program), close the file and save it to another directory if you do not want it to be overwritten!")
     input("Press enter to close.")
     exit()
 except Exception as e:
-    print(f"Error saving file! Details: {e}")
+    update_output(f"Error saving file! Details: {e}")
     delete_temp('combined.xlsx')
     exit()
 
 #Delete the temporary combined file created earlier
-delete_temp('combined.xlsx')
+if delete_combined:
+    delete_temp('combined.xlsx')
 
 #Ending prompt
 input("\n\nAll tasks completed. Press enter to close.")
