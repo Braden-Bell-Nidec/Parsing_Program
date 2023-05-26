@@ -6,6 +6,7 @@ from sys import exit
 from Combiner import merge_files
 from Combiner import delete_temp
 from GUI import select_files
+from time import sleep
 
 DEFAULT_PERCENT = 0.07  #Default outlier percentage threshold
 
@@ -159,4 +160,6 @@ if delete_combined:
     delete_temp('combined.xlsx')
 
 #Ending prompt
-input("\n\nAll tasks completed. Press enter to close.")
+print("\n\nAll tasks completed. Exiting in 5 seconds...")
+sleep(5)
+exit()

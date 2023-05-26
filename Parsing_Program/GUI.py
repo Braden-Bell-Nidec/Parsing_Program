@@ -6,10 +6,10 @@ def select_files():
     EPGA_File = ''
     AD_File = ''
     root = tk.Tk()
-    delete_file = tk.IntVar()  # checkbox variable (0 - not checked, 1 - checked)
-    userPercent = tk.StringVar()  # entry field variable
-    EPGA_path = tk.StringVar()  # EPGA file path label variable
-    AD_path = tk.StringVar()  # AD file path label variable
+    delete_file = tk.IntVar(value=1)  # checkbox variable (0 - not checked, 1 - checked)
+    userPercent = tk.StringVar(value=7)  # entry field variable
+    EPGA_path = tk.StringVar(value="EPGA.xlsx")  # EPGA file path label variable
+    AD_path = tk.StringVar(value="AD.csv")  # AD file path label variable
 
     def run_script():
         nonlocal EPGA_File
