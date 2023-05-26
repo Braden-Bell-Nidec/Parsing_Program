@@ -366,3 +366,4 @@ FodyWeavers.xsd
 *.csv
 *.xlsx
 *.xlmx
+/Parsing_Program/build
