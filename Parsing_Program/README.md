@@ -38,4 +38,4 @@ The script produces an Excel file (`analysis.xlsx`) with the analysis results:
 The script creates a temporary combined Excel file during the execution, which is deleted upon completion.
 
 ## Credits
-This script was created by Braden Bell with assistance from chatGPT-4
+This script was created by Braden Bell with assistance from OpenAI's chatGPT-4
