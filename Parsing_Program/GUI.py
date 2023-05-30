@@ -1,4 +1,5 @@
 import tkinter as tk
+from tkinter import ttk
 from tkinter import filedialog, Text, IntVar, StringVar
 import sys
 import threading
@@ -13,7 +14,6 @@ class TextboxWriter:
         self.textbox.insert(tk.END, text)
         self.textbox.configure(state='disabled')
 
-
     def flush(self):
         pass
 
@@ -21,8 +21,8 @@ class TextboxWriter:
 class GUI:
     def __init__(self, root, main_func):
         self.root = root
+        self.root.geometry("830x600")
         self.main_func = main_func
-
         self.root.title("Parser by Braden Bell")
 
         # Create a frame that fills the root window
@@ -45,6 +45,15 @@ class GUI:
 
         # Run button
         self.create_run_button(self.frame, "Run", self.run_program, 4)
+
+        #Progress bar
+        self.progress = ttk.Progressbar(self.root, length=400, mode='determinate')
+        self.progress.pack(side="left")
+
+        self.status = tk.StringVar()
+        self.status.set("Ready")
+        self.status_label = tk.Label(self.root, textvariable=self.status)
+        self.status_label.pack(side="left")
 
         # Text box for program output
         self.output_box = self.create_text_box(self.frame, 5)
@@ -97,4 +106,4 @@ class GUI:
         AD_File = self.AD_file.get()
         user_percent = self.user_percentage.get()
         delete_temp = self.delete_combined.get()
-        threading.Thread(target=self.main_func, args=(EPGA_File, AD_File, user_percent, delete_temp)).start()
+        threading.Thread(target=self.main_func, args=(EPGA_File, AD_File, user_percent, delete_temp, self.progress, self.status)).start()

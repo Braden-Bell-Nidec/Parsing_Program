@@ -2,14 +2,14 @@
 import pandas as pd
 import openpyxl as pyxl
 import Excel_Functions as ef
-from GUI import GUI
 import tkinter as tk
+from time import sleep
+from GUI import GUI
 from sys import exit
 from Combiner import merge_files
 from Combiner import delete_temp
-from time import sleep
 
-def main(EPGA_File, AD_File, user_percent, delete_combined):
+def main(EPGA_File, AD_File, user_percent, delete_combined, progress, status):
     DEFAULT_PERCENT = 0.07  #Default outlier percentage threshold
 
     #Set display options for pandas DataFrame outputs in terminal
@@ -21,24 +21,27 @@ def main(EPGA_File, AD_File, user_percent, delete_combined):
     #Add file extension if user does not include it
 
     #Attempt to combine the given EPGA and Active Directory files into one .xlsx file
+    status.set("Merging files...")
     try:
         fileName = merge_files(EPGA_File, AD_File, 'combined.xlsx')
+        progress['value'] = 10
+
     except PermissionError: #This *shouldn't* be a common trip because Excel only disallows writing to files while open, but if there's some other program that has it tied up this should catch it.
         print(f"Permission denined when trying to access one of the files {EPGA_File} or {AD_File}")
         print("This is usually cased by one or more of the files being used by another program.")
         print("Please close the program(s) and try again.")
         
-    except Exception as e: 
+    except Exception as e:
         print(f"Error merging files! Details: {e}")
-        
         exit()
 
     #Attempt to read the temporary combined file into a pandas DataFrame
     try:
+        status.set("Reading combined file...")
         df = pd.read_excel(fileName)
+        progress['value'] = 20
     except Exception as e: 
         print(f"Error reading the merged Excel file! Details: {e}")
-        
         exit()
     
 
@@ -65,6 +68,9 @@ def main(EPGA_File, AD_File, user_percent, delete_combined):
     department_dfs = {}
     for department in df['DEPARTMENT'].drop_duplicates().values:
         department_dfs[department] = df[df['DEPARTMENT'] == department]
+    
+    progress['value'] = 30
+    status.set("Calculating percentages...")
 
     #Calculate counts and percentages for each department, job title, and responsibility
     try:
@@ -77,8 +83,9 @@ def main(EPGA_File, AD_File, user_percent, delete_combined):
         outliers = counts[counts['percentage'] < user_percent]  #Calculate outliers
     except Exception as e:
         print(f"Error calculating counts and percentages! Details: {e}")
-        
         exit()
+
+    progress['value'] = 40
 
     #Prepare a list of outlier users based on percentage and outlier criteria (user's custom percentage)
     outlier_users_list = []
@@ -98,7 +105,8 @@ def main(EPGA_File, AD_File, user_percent, delete_combined):
 
     #Put the outlier user list into a DataFrame
     outlier_users = pd.DataFrame(outlier_users_list)
-    print("\n\n-========================================= Possible Outliers =========================================-")
+    progress['value'] = 50
+    print("-========================================= Possible Outliers =========================================-")
     print(outlier_users)  #print outlier DataFrame to terminal
 
     #Prepare non-outlier data, i.e., data that does *not* meet the outlier criteria (user's custom percentage)
@@ -119,6 +127,10 @@ def main(EPGA_File, AD_File, user_percent, delete_combined):
     non_outliers = pd.DataFrame(non_outlier_list)
     print("\n\n-=========================================== Non-Outliers ===========================================-")
     print(non_outliers)  #print non-outlier DataFrame data to terminal
+
+    progress['value'] = 60
+    status.set("Preparing Excel workbook...")
+
     try:
         #Prepare to write data to an Excel .xlsx
         wb = pyxl.Workbook()  #Create new workbook
@@ -141,12 +153,12 @@ def main(EPGA_File, AD_File, user_percent, delete_combined):
         ef.align_cells(non_outliers_sheet, ['A', 'B', 'C', 'D'], ef.Alignment(horizontal='center'))
     except Exception as e:
         print(f"Error preparing Excel workbook! Details: {e}")
-        
         exit()
 
     #Create seperate Excel sheets and charts for each unique job title
     ef.create_job_title_sheets_and_charts(df, wb)
-
+    status.set("Saving Excel workbook...")
+    progress['value'] = 70
     #Save changes to the workbook
     try:
         wb.save("analysis.xlsx")
@@ -154,21 +166,23 @@ def main(EPGA_File, AD_File, user_percent, delete_combined):
         print("Permission denied when trying to save results to file!")
         print("This is ususally caused by another file called 'analysis.xlsx' being open in Excel (or another program) in the current working directory.")
         print("If a previous analysis.xlsx file is open in Excel (or another program), close the file and save it to another directory if you do not want it to be overwritten!")
-        
         exit()
     except Exception as e:
         print(f"Error saving file! Details: {e}")
         delete_temp('combined.xlsx')
         exit()
 
+    progress['value'] = 80
     #Delete the temporary combined file created earlier
-    
     if delete_combined:
+        status.set("Cleaning up...")
         delete_temp('combined.xlsx')
-    
+        sleep(0.25)
+   
+    progress['value'] = 100
     #Ending prompt
-    print("\n\nAll tasks completed.")
-
+    status.set("All tasks completed.")
+   
 #Run the GUI
 root = tk.Tk()
 gui = GUI(root, main)
