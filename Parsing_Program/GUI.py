@@ -1,51 +1,100 @@
-# GUI.py
 import tkinter as tk
-from tkinter import filedialog, messagebox
+from tkinter import filedialog, Text, IntVar, StringVar
+import sys
+import threading
 
-def select_files():
-    EPGA_File = ''
-    AD_File = ''
-    root = tk.Tk()
-    delete_file = tk.IntVar(value=1)  # checkbox variable (0 - not checked, 1 - checked)
-    userPercent = tk.StringVar(value=7)  # entry field variable
-    EPGA_path = tk.StringVar(value="EPGA.xlsx")  # EPGA file path label variable
-    AD_path = tk.StringVar(value="AD.csv")  # AD file path label variable
+class TextboxWriter:
+    def __init__(self, textbox):
+        self.textbox = textbox
+        self.textbox.configure(state='disabled')
 
-    def run_script():
-        nonlocal EPGA_File
-        nonlocal AD_File
-        if EPGA_File and AD_File:
-            root.destroy()  # close GUI
-            return EPGA_File, AD_File, bool(delete_file.get()), userPercent.get()
-        else:
-            messagebox.showinfo("Error", "Please select both files.")
+    def write(self, text):
+        self.textbox.configure(state='normal')
+        self.textbox.insert(tk.END, text)
+        self.textbox.configure(state='disabled')
 
-    def select_EPGA_File():
-        nonlocal EPGA_File
-        EPGA_File = filedialog.askopenfilename(defaultextension=".xlsx", filetypes=[("Excel Files", "*.xlsx")])
-        EPGA_path.set(EPGA_File)  # update EPGA file path label
 
-    def select_AD_File():
-        nonlocal AD_File
-        AD_File = filedialog.askopenfilename(defaultextension=".csv", filetypes=[("CSV Files", "*.csv")])
-        AD_path.set(AD_File)  # update AD file path label
+    def flush(self):
+        pass
 
-    root.title("File Selector")
 
-    tk.Label(root, text="EPGA File:").grid(row=0, column=0, sticky='e')
-    tk.Label(root, text="Active Directory File:").grid(row=1, column=0, sticky='e')
-    tk.Label(root, text="Outlier Percentage Threshold (default is 7%):").grid(row=2, column=0, sticky='e')
-    EPGA_label = tk.Label(root, textvariable=EPGA_path)  # bind EPGA_path variable
-    EPGA_label.grid(row=0, column=1)
-    AD_label = tk.Label(root, textvariable=AD_path)  # bind AD_path variable
-    AD_label.grid(row=1, column=1)
-    userPercent_entry = tk.Entry(root, textvariable=userPercent)
-    userPercent_entry.grid(row=2, column=1)
-    tk.Button(root, text="Browse", command=select_EPGA_File).grid(row=0, column=2)
-    tk.Button(root, text="Browse", command=select_AD_File).grid(row=1, column=2)
-    tk.Checkbutton(root, text="Delete combined.xlsx", variable=delete_file).grid(row=3, columnspan=2)
-    tk.Button(root, text="Run script", command=run_script).grid(row=4, columnspan=3)
+class GUI:
+    def __init__(self, root, main_func):
+        self.root = root
+        self.main_func = main_func
 
-    root.mainloop()
+        self.root.title("Parser by Braden Bell")
 
-    return EPGA_File, AD_File, bool(delete_file.get()), userPercent.get()
+        # Create a frame that fills the root window
+        self.frame = tk.Frame(self.root)
+        self.frame.pack(fill="both", expand=True)
+
+        # File selectors
+        self.EPGA_file = StringVar()
+        self.AD_file = StringVar()
+        self.create_file_selector(self.frame, "Select EPGA file", self.EPGA_file, 0)
+        self.create_file_selector(self.frame, "Select Active Directory file", self.AD_file, 1)
+
+        # Input box for user percentage
+        self.user_percentage = StringVar()
+        self.create_input_box(self.frame, "Enter outlier percentage threshold (default is 7%): ", self.user_percentage, 2)
+
+        # Checkbox
+        self.delete_combined = IntVar(value=1)
+        self.create_checkbox(self.frame, "Delete combined.xlsx upon completion", self.delete_combined, 3)
+
+        # Run button
+        self.create_run_button(self.frame, "Run", self.run_program, 4)
+
+        # Text box for program output
+        self.output_box = self.create_text_box(self.frame, 5)
+        sys.stdout = TextboxWriter(self.output_box)
+
+    def create_file_selector(self, parent, label_text, string_var, row):
+        frame = tk.Frame(parent)
+        label = tk.Label(frame, text=label_text)
+        entry = tk.Entry(frame, textvariable=string_var)
+        button = tk.Button(frame, text="Browse", command=lambda: string_var.set(filedialog.askopenfilename(filetypes=(("xlsx files", "*.xlsx"), ("csv files", "*.csv"),("all files", "*.*")))))
+        label.pack(side="left")
+        entry.pack(side="left")
+        button.pack(side="left")
+        frame.grid(row=row, column=0, sticky="ew")
+        parent.grid_rowconfigure(row, weight=1)
+        parent.grid_columnconfigure(0, weight=1)
+
+    def create_input_box(self, parent, label_text, string_var, row):
+        frame = tk.Frame(parent)
+        label = tk.Label(frame, text=label_text)
+        entry = tk.Entry(frame, textvariable=string_var)
+        label.pack(side="left")
+        entry.pack(side="left")
+        frame.grid(row=row, column=0, sticky="ew")
+        parent.grid_rowconfigure(row, weight=1)
+        parent.grid_columnconfigure(0, weight=1)
+
+    def create_checkbox(self, parent, label_text, int_var, row):
+        checkbox = tk.Checkbutton(parent, text=label_text, variable=int_var)
+        checkbox.grid(row=row, column=0, sticky="w")
+        parent.grid_rowconfigure(row, weight=1)
+        parent.grid_columnconfigure(0, weight=1)
+
+    def create_run_button(self, parent, label_text, command, row):
+        button = tk.Button(parent, text=label_text, command=command)
+        button.grid(row=row, column=0, sticky="ew")
+        parent.grid_rowconfigure(row, weight=1)
+        parent.grid_columnconfigure(0, weight=1)
+
+    def create_text_box(self, parent, row):
+        text_box = Text(parent)
+        text_box.grid(row=row, column=0, sticky="nsew")
+        parent.grid_rowconfigure(row, weight=1)
+        parent.grid_columnconfigure(0, weight=1)
+        return text_box
+
+
+    def run_program(self):
+        EPGA_File = self.EPGA_file.get()
+        AD_File = self.AD_file.get()
+        user_percent = self.user_percentage.get()
+        delete_temp = self.delete_combined.get()
+        threading.Thread(target=self.main_func, args=(EPGA_File, AD_File, user_percent, delete_temp)).start()

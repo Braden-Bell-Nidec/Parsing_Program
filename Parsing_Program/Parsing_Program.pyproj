@@ -4,7 +4,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>14886495-9eb1-47ab-9bd5-0e0148cda476</ProjectGuid>
     <ProjectHome>.</ProjectHome>
-    <StartupFile>Parser.py</StartupFile>
+    <StartupFile>Parser.pyw</StartupFile>
     <SearchPath>
     </SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
@@ -24,7 +24,7 @@
     <Compile Include="Combiner.py" />
     <Compile Include="Excel_Functions.py" />
     <Compile Include="GUI.py" />
-    <Compile Include="Parser.py" />
+    <Compile Include="Parser.pyw" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Parsing_Program.exe" />
