@@ -19,6 +19,8 @@ class GUI:
         self.root = root
         self.main_func = main_func
 
+        self.root.title("Parser by Braden Bell")
+
         # Create a frame that fills the root window
         self.frame = tk.Frame(self.root)
         self.frame.pack(fill="both", expand=True)
