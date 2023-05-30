@@ -27,10 +27,10 @@ def main(EPGA_File, AD_File, user_percent, delete_combined):
         print(f"Permission denined when trying to access one of the files {EPGA_File} or {AD_File}")
         print("This is usually cased by one or more of the files being used by another program.")
         print("Please close the program(s) and try again.")
-        input("Press enter to close.")
+        
     except Exception as e: 
         print(f"Error merging files! Details: {e}")
-        input("Press enter to close.")
+        
         exit()
 
     #Attempt to read the temporary combined file into a pandas DataFrame
@@ -38,8 +38,9 @@ def main(EPGA_File, AD_File, user_percent, delete_combined):
         df = pd.read_excel(fileName)
     except Exception as e: 
         print(f"Error reading the merged Excel file! Details: {e}")
-        print("Press enter to close.")
+        
         exit()
+    
 
     #Get custom outlier percentage from user and validate the input
     #user_percent = input("Enter outlier percentage threshold (default is 7%): ")
@@ -47,7 +48,11 @@ def main(EPGA_File, AD_File, user_percent, delete_combined):
         user_percent = DEFAULT_PERCENT #Defined at top of program
     else:
         try:
-            user_percent = abs(float(user_percent) / 100.00) #Convert the user's percent to decimal format
+            if int(user_percent) < 100:
+                user_percent = abs(float(user_percent) / 100.00) #Convert the user's percent to decimal format
+            else:
+                print("Percent was greater than 100.\nResorting to default.")
+                user_percent = DEFAULT_PERCENT
         except ValueError:
             print("Input value error, resorting to default")
             user_percent = DEFAULT_PERCENT
@@ -72,7 +77,7 @@ def main(EPGA_File, AD_File, user_percent, delete_combined):
         outliers = counts[counts['percentage'] < user_percent]  #Calculate outliers
     except Exception as e:
         print(f"Error calculating counts and percentages! Details: {e}")
-        input("Press enter to close.")
+        
         exit()
 
     #Prepare a list of outlier users based on percentage and outlier criteria (user's custom percentage)
@@ -136,7 +141,7 @@ def main(EPGA_File, AD_File, user_percent, delete_combined):
         ef.align_cells(non_outliers_sheet, ['A', 'B', 'C', 'D'], ef.Alignment(horizontal='center'))
     except Exception as e:
         print(f"Error preparing Excel workbook! Details: {e}")
-        input("Press enter to close.")
+        
         exit()
 
     #Create seperate Excel sheets and charts for each unique job title
@@ -149,7 +154,7 @@ def main(EPGA_File, AD_File, user_percent, delete_combined):
         print("Permission denied when trying to save results to file!")
         print("This is ususally caused by another file called 'analysis.xlsx' being open in Excel (or another program) in the current working directory.")
         print("If a previous analysis.xlsx file is open in Excel (or another program), close the file and save it to another directory if you do not want it to be overwritten!")
-        input("Press enter to close.")
+        
         exit()
     except Exception as e:
         print(f"Error saving file! Details: {e}")

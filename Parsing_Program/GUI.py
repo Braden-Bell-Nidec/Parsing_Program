@@ -6,9 +6,13 @@ import threading
 class TextboxWriter:
     def __init__(self, textbox):
         self.textbox = textbox
+        self.textbox.configure(state='disabled')
 
     def write(self, text):
+        self.textbox.configure(state='normal')
         self.textbox.insert(tk.END, text)
+        self.textbox.configure(state='disabled')
+
 
     def flush(self):
         pass
