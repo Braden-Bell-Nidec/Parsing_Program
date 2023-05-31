@@ -1,41 +1,62 @@
-# README - Outlier Detection in Company Role Distribution 
+# README.md
 
-## Overview
+## Python Program: Data Analysis Tool
 
-This Python script is designed to analyze role distribution within a company by identifying potential outliers based on percentage thresholds. The user provides an Excel file (`.xlsx`) with Enterprise Project Governance Architecture (EPGA) data and a Comma Separated Value (CSV) file with Active Directory (AD) data. The script merges these files, reads the data, and allows the user to specify a percentage threshold. The script then identifies outliers, or roles that constitute less than the specified threshold of a department's distribution.
+This is a Python application that merges two Excel files, performs data analysis and produces an output Excel workbook that presents this data along with charts.
 
-## Prerequisites 
+### Dependencies
 
-You need to have the following software installed in order to run the script:
+The program uses the following Python libraries:
 
-1. Python 3.x 
-2. The following Python libraries: pandas, openpyxl, and the custom modules Excel_Functions and Combiner (make sure these files are in the same directory as the main script).
+- `pandas`
+- `openpyxl`
+- `tkinter`
+- `time`
+- `sys`
 
-## How to run the script
+It also uses custom modules named `Excel_Functions`, `GUI` and `Combiner`.
 
-1. Open a terminal or command prompt.
-2. Navigate to the directory where the script is located.
-3. Run the script by typing `python script_name.py` where "script_name" is the name of the Python script.
-4. You will be prompted to provide the paths to the EPGA and AD files. Ensure that the files are accessible and the paths are correctly typed.
-5. The script will ask for an outlier percentage threshold. This is the cutoff below which roles are considered outliers. If no value is entered, the default value of 7% will be used.
-6. The script will then execute the analysis and present the outliers and non-outliers in the terminal. 
-7. Finally, the script generates an Excel file (`analysis.xlsx`) which contains the analysis results with the outliers and non-outliers data in separate sheets. The workbook also includes separate sheets and charts for each unique job title.
+### Usage
 
-## Error Handling 
+The main function of the program is `main(EPGA_File, AD_File, user_percent, delete_combined, progress, status)`, which performs all the core operations. It uses a graphical user interface (GUI) for input.
 
-The script includes comprehensive error handling to guide users when issues arise. Errors may occur due to incorrect file paths, permission errors (if files are open in another program or inaccessible), and data-related issues.
+#### Parameters:
 
-## Output
+- `EPGA_File`: This is the path of the first Excel file.
+- `AD_File`: This is the path of the second Excel file.
+- `user_percent`: This is the user-defined percentage threshold for outliers. If left empty, the default threshold of 7% is used. If the input percentage is over 100, the program reverts to the default.
+- `delete_combined`: This is a boolean flag to indicate whether to delete the temporary combined file created during processing.
+- `progress`: This is a GUI progress bar.
+- `status`: This is a GUI status label that provides updates to the user.
 
-The script produces an Excel file (`analysis.xlsx`) with the analysis results:
+### Output
 
-- An 'Outliers' sheet that lists all users who fall into outlier categories (job roles constituting less than the specified percentage of a department's distribution).
-- A 'Non-Outliers' sheet that lists all users who don't fall into outlier categories.
-- Separate sheets and charts for each unique job title.
+The output is an Excel file named 'analysis.xlsx'. It contains several sheets:
 
-## Clean Up 
+- `Outliers`: This sheet lists users who have been identified as outliers according to the user-defined or default threshold.
+- `Non-Outliers`: This sheet lists data that do not meet the outlier criteria.
+- Individual sheets for each unique job title, which include charts for further visualization.
 
-The script creates a temporary combined Excel file during the execution, which is deleted upon completion.
+### Exception Handling
 
-## Credits
-This script was created by Braden Bell with assistance from OpenAI's chatGPT-4
+The program includes comprehensive exception handling for errors such as permission issues, Unicode decoding errors, file not found errors, and general exceptions. The user is provided with descriptive error messages to diagnose problems and is advised to close the program when encountering these exceptions.
+
+### GUI Interface
+
+The application uses a tkinter GUI for input. The `GUI(root, main)` function runs the GUI.
+
+### Installation
+
+To use this program:
+
+1. Ensure that Python 3.6+ and all the required libraries are installed.
+2. Download or clone this repository to your local machine.
+3. Run the program in a Python environment or using a Python IDE.
+
+Make sure you have the necessary input Excel files and that they are in the correct format.
+
+This program was last updated on May 31, 2023.
+
+### Disclaimer
+
+Please note that the program deletes the temporary combined Excel file created during processing, depending on the `delete_combined` argument. Please be aware of this, as it may lead to data loss if not handled properly. Additionally, the output file 'analysis.xlsx' overwrites any previous file with the same name in the working directory. Please save any important files with a different name or in a different directory to avoid unintentional data loss.
