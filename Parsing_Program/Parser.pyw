@@ -30,9 +30,18 @@ def main(EPGA_File, AD_File, user_percent, delete_combined, progress, status):
         print(f"Permission denined when trying to access one of the files {EPGA_File} or {AD_File}")
         print("This is usually cased by one or more of the files being used by another program.")
         print("Please close the program(s) and try again.")
-        
-    except Exception as e:
-        print(f"Error merging files! Details: {e}")
+        status.set("Error")
+        exit()
+
+    except UnicodeDecodeError:
+        print("Unicode decode error. Make sure the correct files were selected and are formatted properly.")
+        status.set("Error")
+        exit()
+
+
+    except FileNotFoundError:
+        print("One or more of the files could not be found.")
+        status.set("Error")
         exit()
 
     #Attempt to read the temporary combined file into a pandas DataFrame
@@ -41,6 +50,7 @@ def main(EPGA_File, AD_File, user_percent, delete_combined, progress, status):
         df = pd.read_excel(fileName)
         progress['value'] = 20
     except Exception as e: 
+        status.set("Error")
         print(f"Error reading the merged Excel file! Details: {e}")
         exit()
     
@@ -57,9 +67,11 @@ def main(EPGA_File, AD_File, user_percent, delete_combined, progress, status):
                 print("Percent was greater than 100.\nResorting to default.")
                 user_percent = DEFAULT_PERCENT
         except ValueError:
+            status.set("Error")
             print("Input value error, resorting to default")
             user_percent = DEFAULT_PERCENT
         except Exception as e:
+            status.set("Error")
             print(f"An unknown error occured! Details: {e}")
             print("Resorting to default value and attempting to continue...")
             user_percent = DEFAULT_PERCENT
@@ -82,6 +94,7 @@ def main(EPGA_File, AD_File, user_percent, delete_combined, progress, status):
         counts['percentage'] = counts['counts'] / counts['total_counts']
         outliers = counts[counts['percentage'] < user_percent]  #Calculate outliers
     except Exception as e:
+        status.set("Error")
         print(f"Error calculating counts and percentages! Details: {e}")
         exit()
 
@@ -152,6 +165,7 @@ def main(EPGA_File, AD_File, user_percent, delete_combined, progress, status):
         ef.adjust_column_width(non_outliers_sheet, {'A': 15, 'B': 35, 'C': 32, 'D': 12})
         ef.align_cells(non_outliers_sheet, ['A', 'B', 'C', 'D'], ef.Alignment(horizontal='center'))
     except Exception as e:
+        status.set("Error")
         print(f"Error preparing Excel workbook! Details: {e}")
         exit()
 
@@ -168,6 +182,7 @@ def main(EPGA_File, AD_File, user_percent, delete_combined, progress, status):
         print("If a previous analysis.xlsx file is open in Excel (or another program), close the file and save it to another directory if you do not want it to be overwritten!")
         exit()
     except Exception as e:
+        status.set("Error")
         print(f"Error saving file! Details: {e}")
         delete_temp('combined.xlsx')
         exit()

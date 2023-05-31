@@ -24,7 +24,7 @@ class GUI:
         self.root = root
         self.root.geometry("830x600")  # Set initial window size
         self.main_func = main_func
-        self.root.title("Parser by Braden Bell")
+        self.root.title("Parser Release 1.0 by Braden Bell")
 
         # Create a frame that fills the root window
         self.frame = tk.Frame(self.root)
