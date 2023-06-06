@@ -4,22 +4,63 @@ from openpyxl.styles import Alignment
 import pandas as pd
 
 def sanitize_sheet_name(sheet_name):
-    invalid_chars = ['\\', '/', '*', '[', ']', ':', '?', ' ']
+    invalid_chars = ['_', '-', ',', '\\', '/', '*', '[', ']', ':', '?', ' ']
     abbreviation_dict = {
-        'Manager' : 'Mgr',
+        'Manager': 'Mgr',
+        'manager': 'Mgr',
+        'Manger': 'Mgr',
         'Associate': 'Assoc',
         'I': '1',
         'II': '2',
         'III': '3',
-        'Information Technology': 'IT',
+        'InformationTechnology': 'IT',
         'Technician': 'Tech',
         'Mechanical' : 'Mech',
         'Certification' : 'Cert',
         'Senior' : 'Sr.',
-        'Human Resources': 'HR',
+        'HumanResources': 'HR',
+        'HumanResouce': 'HR',
+        'BuisinessPartner': 'BP',
         'President': 'Pres',
         'Engineer': 'Eng',
-        'Operations': 'Op'
+        'Engineering': 'Eng',
+        'Operations': 'Op',
+        'MANKATO': 'MKTO',
+        'LEXINGTON': 'LEX',
+        'REYNOSA': 'REY',
+        'Electronic': 'Elec',
+        'Component': 'Comp',
+        'Assembler': 'Assem',
+        'Marketing': 'MkTg',
+        'Maintenance': 'Maint.',
+        'And': '&',
+        'and': '&',
+        'General': 'Gen',
+        'Network': 'Net',
+        'Infrastructure': 'Inf',
+        'Specialist': 'Spclst',
+        'Environmental': 'Enviro',
+        'Health': 'Hlth',
+        'Safety': 'Sfty',
+        'Director': 'Dir',
+        'Administrative': 'Admin',
+        'Administrator': 'Admin',
+        'Product': 'Prod',
+        'Accounts': 'Accts',
+        'Aftermarket': 'AM',
+        'Remanufacturing': 'Reman',
+        'Supervisor': 'Suprvsr.',
+        'Development': 'Dev',
+        'Caterpillar': 'CAT',
+        'Communications': 'Comms',
+        'Logistics': 'Log',
+        'Compliance': 'Cmpl',
+        'Shipping': 'Ship',
+        'Recieving': 'Rec',
+        'Technical': 'Tech',
+        'Fabrication': 'Fab',
+        'Manufacturing': 'Man.',
+        'Represenative': 'Rep'
         }
 
     for word in sheet_name.split():
@@ -63,12 +104,15 @@ def create_job_title_sheets_and_charts(df, wb):
     job_titles = df['JOB_TITLE'].unique()
     for title in job_titles:
         job_title_df = df[df['JOB_TITLE'] == title]
-        offices = job_title_df['OFFICENAME'].unique()
+        offices = job_title_df['OFFICE'].unique()
         for office in offices:
-            sanitized_title = sanitize_sheet_name(f'{title}_{office}')
-            ws = wb.create_sheet(title=sanitized_title)
-            office_group = job_title_df[job_title_df['OFFICENAME'] == office]
+            sanitized_title = sanitize_sheet_name(title)
+            sanitized_office = sanitize_sheet_name(office)
+            combined_title = (sanitized_office + "-" + sanitized_title)[:31] 
+            ws = wb.create_sheet(title=combined_title)
+            office_group = job_title_df[job_title_df['OFFICE'] == office]
             create_pie_charts(office_group, ws)
+
 
 
     #If the default 'Sheet' exists, remove it
