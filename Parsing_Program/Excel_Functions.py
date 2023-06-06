@@ -61,16 +61,15 @@ def append_dataframe_to_sheet(ws, df, start_row=1, start_col=1):
 
 def create_job_title_sheets_and_charts(df, wb):
     job_titles = df['JOB_TITLE'].unique()
-
     for title in job_titles:
-        #print(f"Original title: {title}")  #Debug line
-        sanitized_title = sanitize_sheet_name(title)
-        #print(f"Sanitized title: {sanitized_title}")  #Debug line
-        ws = wb.create_sheet(title=sanitized_title)
+        job_title_df = df[df['JOB_TITLE'] == title]
+        offices = job_title_df['OFFICENAME'].unique()
+        for office in offices:
+            sanitized_title = sanitize_sheet_name(f'{title}_{office}')
+            ws = wb.create_sheet(title=sanitized_title)
+            office_group = job_title_df[job_title_df['OFFICENAME'] == office]
+            create_pie_charts(office_group, ws)
 
-        group = df[df['JOB_TITLE'] == title]
-
-        create_pie_charts(group, ws)
 
     #If the default 'Sheet' exists, remove it
     if 'Sheet' in wb:
@@ -129,15 +128,7 @@ def create_excel_pie_chart(sheet, df, min_col, max_col, chart_location):
 
 
 def create_pie_charts(df, ws):
-    """
-    Creates pie charts in a worksheet. It also contains formatting data.
-
-    Args:
-        df (DataFrame): A pandas DataFrame containing responsibility and 'Member of' data.
-        ws (Worksheet): An openpyxl worksheet object.
-    """
     responsibilities, member_of = get_responsibility_and_member_of_data(df)
-
     append_dataframe_to_sheet(ws, responsibilities, start_row=1, start_col=1)
     adjust_column_width(ws, {'A': 45, 'B': 10})
     align_cells(ws, ['B'], Alignment(horizontal='center'))
@@ -147,6 +138,7 @@ def create_pie_charts(df, ws):
     adjust_column_width(ws, {'D': 45, 'E': 20})
     align_cells(ws, ['E'], Alignment(horizontal='center'))
     create_excel_pie_chart(ws, member_of, min_col=4, max_col=5, chart_location="F16")
+
 
 
 def split_and_explode(df, column, delimiter=';'):
