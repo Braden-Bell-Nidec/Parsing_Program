@@ -151,23 +151,14 @@ def align_cells(sheet, cols, alignment):
 
 
 def create_excel_pie_chart(sheet, df, min_col, max_col, chart_location):
-    """
-    Creates a pie chart in the specified worksheet based on the responsibility data.
-
-    Args:
-        sheet (Worksheet): An openpyxl worksheet object.
-        df (DataFrame): A pandas DataFrame containing responsibility data.
-        min_col (int): Minimum column index for the data to be charted.
-        max_col (int): Maximum column index for the data to be charted.
-        chart_location (str): Excel-style cell reference for the location of the chart.
-    """
     chart = PieChart()
-    labels = Reference(sheet, min_col=min_col, min_row=3, max_row=len(df)+2)  # Adjusted min_row and max_row
-    data = Reference(sheet, min_col=max_col, min_row=2, max_row=len(df)+2)  # Adjusted max_row
+    labels = Reference(sheet, min_col=min_col, min_row=2, max_row=len(df)+1) # Adjusted min_row and max_row
+    data = Reference(sheet, min_col=max_col, min_row=2, max_row=len(df)+1) # Adjusted min_row and max_row
     chart.add_data(data, titles_from_data=True)
     chart.set_categories(labels)
     chart.title = 'Responsibility Distribution' if min_col==1 else 'Member Of Distribution'
     sheet.add_chart(chart, chart_location)
+
 
 
 
