@@ -119,7 +119,7 @@ def append_dataframe_to_sheet(ws, df, start_row=1, start_col=1):
 
 def create_job_title_sheets_and_charts(df, wb):
     """
-    Creates individual sheets and charts for each job title in a DataFrame.
+    Creates individual sheets and charts for each office location with job title in a DataFrame.
 
     Args:
         df (pandas.DataFrame): The DataFrame containing job title and office information.
@@ -128,39 +128,28 @@ def create_job_title_sheets_and_charts(df, wb):
     Returns:
         None
     """
+    # Group by 'OFFICE' and then 'JOB_TITLE'
+    grouped = df.groupby(['OFFICE', 'JOB_TITLE'])
 
-    # Get unique job titles from the DataFrame
-    job_titles = df['JOB_TITLE'].unique()
+    # Iterate over each group
+    for (office, title), group in grouped:
+        # Sanitize the title and office names
+        sanitized_office = sanitize_sheet_name(office)
+        sanitized_title = sanitize_sheet_name(title)
 
-    # Iterate over each job title
-    for title in job_titles:
-        # Filter DataFrame for the current job title
-        job_title_df = df[df['JOB_TITLE'] == title]
+        # Combine sanitized office and title names with a hyphen
+        combined_title = (sanitized_office + "-" + sanitized_title)[:31]
 
-        # Get unique offices for the current job title
-        offices = job_title_df['OFFICE'].unique()
+        # Create a new sheet with the combined title
+        ws = wb.create_sheet(title=combined_title)
 
-        # Iterate over each office
-        for office in offices:
-            # Sanitize the title and office names
-            sanitized_title = sanitize_sheet_name(title)
-            sanitized_office = sanitize_sheet_name(office)
+        # Create pie charts for the office group on the sheet
+        create_pie_charts(group, ws)
 
-            # Combine sanitized office and title names with a hyphen
-            combined_title = (sanitized_office + "-" + sanitized_title)[:31]
-
-            # Create a new sheet with the combined title
-            ws = wb.create_sheet(title=combined_title)
-
-            # Filter the DataFrame for the current office
-            office_group = job_title_df[job_title_df['OFFICE'] == office]
-
-            # Create pie charts for the office group on the sheet
-            create_pie_charts(office_group, ws)
-
-    #If the default 'Sheet' exists, remove it
+    # If the default 'Sheet' exists, remove it
     if 'Sheet' in wb:
         wb.remove(wb['Sheet'])
+
 
 
 def adjust_column_width(sheet, cols_width_dict):
