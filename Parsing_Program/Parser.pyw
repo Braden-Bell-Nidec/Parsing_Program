@@ -179,6 +179,7 @@ def main(EPGA_File, AD_File, user_percent, delete_combined, progress, status):
     try:
         wb.save("analysis.xlsx")
     except PermissionError:
+        status.set("Error")
         print("Permission denied when trying to save results to file!")
         print("This is usually caused by another file called 'analysis.xlsx' being open in Excel (or another program) in the current working directory.")
         exit()
