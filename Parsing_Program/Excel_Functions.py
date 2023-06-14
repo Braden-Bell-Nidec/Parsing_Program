@@ -110,11 +110,11 @@ def append_dataframe_to_sheet(ws, df, start_row=1, start_col=1):
     #Write data from the DataFrame to the worksheet
     for i, row in enumerate(df.values, start=1):  #Starting index from 1
         for j, item in enumerate(row, start=1):  #Starting index from 1
-            ws.cell(row=start_row+i-1, column=start_col+j-1, value=item)
+            ws.cell(row=start_row+i, column=start_col+j-1, value=item)
 
     #Write column names to the worksheet
     for j, col_name in enumerate(df.columns, start=1):  #Starting index from 1
-        ws.cell(row=start_row, column=start_col+j-1, value=col_name)
+        ws.cell(row=start_row+1, column=start_col+j-1, value=col_name)
 
 
 def create_job_title_sheets_and_charts(df, wb):
@@ -143,12 +143,11 @@ def create_job_title_sheets_and_charts(df, wb):
         # Create a new sheet with the combined title
         ws = wb.create_sheet(title=combined_title)
 
+        # Write the JOB_TITLE to the top of the sheet
+        ws.cell(row=1, column=1, value=title)
+
         # Create pie charts for the office group on the sheet
         create_pie_charts(group, ws)
-
-    # If the default 'Sheet' exists, remove it
-    if 'Sheet' in wb:
-        wb.remove(wb['Sheet'])
 
 
 
@@ -201,10 +200,10 @@ def create_excel_pie_chart(sheet, df, min_col, max_col, chart_location):
     chart = PieChart()
 
     # Define the range of labels from the sheet
-    labels = Reference(sheet, min_col=min_col, min_row=2, max_row=len(df) + 1)  # Adjusted min_row and max_row
+    labels = Reference(sheet, min_col=min_col, min_row=4, max_row=len(df) + 1)  # Adjusted min_row and max_row
 
     # Define the range of data values from the sheet
-    data = Reference(sheet, min_col=max_col, min_row=2, max_row=len(df) + 1)  # Adjusted min_row and max_row
+    data = Reference(sheet, min_col=max_col, min_row=4, max_row=len(df) + 1)  # Adjusted min_row and max_row
 
     # Add the data and set the categories for the chart
     chart.add_data(data, titles_from_data=True)
@@ -232,7 +231,7 @@ def create_pie_charts(df, ws):
     responsibilities, member_of = get_responsibility_and_member_of_data(df)
 
     # Append the responsibility data to the worksheet
-    append_dataframe_to_sheet(ws, responsibilities, start_row=1, start_col=1)
+    append_dataframe_to_sheet(ws, responsibilities, start_row=2, start_col=1)
 
     # Adjust the column width for better visibility
     adjust_column_width(ws, {'A': 45, 'B': 10})
@@ -241,10 +240,10 @@ def create_pie_charts(df, ws):
     align_cells(ws, ['B'], Alignment(horizontal='center'))
 
     # Create a pie chart for the responsibility data and add it to the worksheet
-    create_excel_pie_chart(ws, responsibilities, min_col=1, max_col=2, chart_location="F1")
+    create_excel_pie_chart(ws, responsibilities, min_col=1, max_col=2, chart_location="F3")
 
-    # Append the member_of data to the worksheet
-    append_dataframe_to_sheet(ws, member_of, start_row=1, start_col=4)
+    # Append the member_of data to the worksheet at a column offset
+    append_dataframe_to_sheet(ws, member_of, start_row=2, start_col=4)  # 4 here is an offset for a new column
 
     # Adjust the column width for better visibility
     adjust_column_width(ws, {'D': 45, 'E': 20})
@@ -253,10 +252,7 @@ def create_pie_charts(df, ws):
     align_cells(ws, ['E'], Alignment(horizontal='center'))
 
     # Create a pie chart for the member_of data and add it to the worksheet
-    create_excel_pie_chart(ws, member_of, min_col=4, max_col=5, chart_location="F16")
-
-
-
+    create_excel_pie_chart(ws, member_of, min_col=4, max_col=5, chart_location="F18")
 
 def split_and_explode(df, column, delimiter=';'):
     """

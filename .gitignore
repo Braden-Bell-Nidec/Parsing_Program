@@ -367,3 +367,4 @@ FodyWeavers.xsd
 *.xlsx
 *.xlmx
 /Parsing_Program/build
+condensed.txt
