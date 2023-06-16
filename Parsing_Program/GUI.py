@@ -95,8 +95,8 @@ class GUI:
 
     # Function to create a run button
     def create_run_button(self, parent, label_text, command, row):
-        button = tk.Button(parent, text=label_text, command=command)
-        button.grid(row=row, column=0, sticky="ew")
+        self.button = tk.Button(parent, text=label_text, command=command)
+        self.button.grid(row=row, column=0, sticky="ew")
         parent.grid_rowconfigure(row, weight=1)
         parent.grid_columnconfigure(0, weight=1)
 
@@ -114,4 +114,16 @@ class GUI:
         AD_File = self.AD_file.get()
         user_percent = self.user_percentage.get()
         delete_temp = self.delete_combined.get()
-        threading.Thread(target=self.main_func, args=(EPGA_File, AD_File, user_percent, delete_temp, self.progress, self.status)).start()
+
+        self.button.configure(state="disabled", text="Please wait...")
+
+        thread = threading.Thread(target=self.main_func, args=(EPGA_File, AD_File, user_percent, delete_temp, self.progress, self.status))
+        thread.start()
+
+        self.root.after(100, self.check_thread, thread)
+
+    def check_thread(self, thread):
+        if thread.is_alive():
+            self.root.after(100, self.check_thread, thread)
+        else:
+            self.button.configure(state="normal", text="Run")
