@@ -4,6 +4,9 @@ from tkinter import filedialog, Text, IntVar, StringVar
 import sys
 import threading
 
+#Debug variable to automatically set file sources
+DEBUG = True
+
 # Class to redirect stdout to the text box
 class TextboxWriter:
     def __init__(self, textbox):
@@ -110,10 +113,17 @@ class GUI:
 
     # Function to run the main program
     def run_program(self):
-        EPGA_File = self.EPGA_file.get()
-        AD_File = self.AD_file.get()
-        user_percent = self.user_percentage.get()
-        delete_temp = self.delete_combined.get()
+        if (DEBUG):
+            print("DEBUG ACTIVE!")
+            EPGA_File = "/mnt/c/Users/bellbr/Desktop/EPGA.xlsx"
+            AD_File = "/mnt/c/Users/bellbr/Downloads/EPGA_Full/All_Users.csv"
+            delete_temp = False
+            user_percent = 7
+        else:
+            EPGA_File = self.EPGA_file.get()
+            AD_File = self.AD_file.get()
+            delete_temp = self.delete_combined.get()
+            user_percent = self.user_percentage.get()
 
         self.button.configure(state="disabled", text="Please wait...")
 

@@ -40,6 +40,8 @@ def sanitize_sheet_name(sheet_name):
         'Operations': 'Op',
         'MANKATO': 'MKTO',
         'LEXINGTON': 'LEX',
+        'EPG REYNOSA': 'REY',
+        'EPG': '',
         'REYNOSA': 'REY',
         'Electronic': 'Elec',
         'Component': 'Comp',

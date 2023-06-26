@@ -29,10 +29,12 @@ def merge_files(epga_file, ad_file, output_file):
         raise ValueError(f"The Active Directory file '{ad_file}' is not formatted correctly.\nPlease ensure it is a valid CSV file with expected column names.")
 
     # Convert the "SAM Account Name", 'Member of', and 'Office' columns to uppercase for case-insensitive match
-    ad['SAM Account Name'] = ad['SAM Account Name'].str.upper()
+    #ad['SAM Account Name'] = ad.apply(adjust_username, axis=1)
+    ad['SAM Account Name'] = ad.apply(adjust_username, axis=1)
+    #print(ad['SAM Account Name'])
+    #ad['SAM Account Name'] = ad['SAM Account Name'].str.upper()
     ad['Member of'] = ad['Member of'].str.upper()
     ad['Office'] = ad['Office'].str.upper()
-
     # Merge the two DataFrames on the user name columns
     combined = pd.merge(epga, ad, left_on='USER_NAME', right_on='SAM Account Name', how='inner')
 
@@ -46,7 +48,7 @@ def merge_files(epga_file, ad_file, output_file):
 
     # Rename the columns to the desired names
     combined.columns = ['DEPARTMENT', 'USER_NAME', 'RESPONSIBILITY_NAME', 'JOB_TITLE', 'MEMBER_OF', 'OFFICE']
-
+    #print(combined)
     # Write the combined DataFrame to a new Excel file
     combined.to_excel(output_file, index=False)
     
@@ -54,7 +56,23 @@ def merge_files(epga_file, ad_file, output_file):
 
 
 
-import os
+def adjust_username(row):
+    if row['Office'] == "EPG Reynosa":
+        try:
+            name_parts = row['Display Name'].split(',')
+            last_name = name_parts[0].strip().split(" ")[0]
+            first_name = name_parts[1].strip().split(" ")[0]
+            username = (last_name[:6] + first_name[:2]).upper()
+            print(username)
+            return username
+        except Exception as e:
+            print(f"{e}")
+            return row['SAM Account Name']
+    else:
+        return row['SAM Account Name'].upper()
+
+
+
 
 def delete_temp(tempFile):
     """
