@@ -29,6 +29,7 @@ def main(EPGA_File, AD_File, user_percent, delete_combined, progress, status):
 
     # Set display options for pandas DataFrame outputs in terminal
     pd.set_option('display.max_colwidth', None)
+    pd.set_option('display.max_row', None)
 
     # Get EPGA data file and Active Directory file names from user respectively.
     # Add file extension if user does not include it

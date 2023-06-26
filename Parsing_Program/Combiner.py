@@ -59,14 +59,24 @@ def merge_files(epga_file, ad_file, output_file):
 def adjust_username(row):
     if row['Office'] == "EPG Reynosa":
         try:
-            name_parts = row['Display Name'].split(',')
+            # Initialize an empty string for the sanitized name
+            sanitized_name = ""
+
+            # Iterate through each character in the name
+            for e in row['Display Name']:
+                # If the character is a letter, a space, or a comma, add it to the sanitized name
+                if e.isalpha() or e.isspace() or e == ',':
+                    sanitized_name += e
+
+            # Split the sanitized name into parts
+            name_parts = sanitized_name.split(',')
             last_name = name_parts[0].strip().split(" ")[0]
             first_name = name_parts[1].strip().split(" ")[0]
             username = (last_name[:6] + first_name[:2]).upper()
-            print(username)
+            #print(username)
             return username
         except Exception as e:
-            print(f"{e}")
+            print(f"Error processing name {row['Display Name']}: {e}")
             return row['SAM Account Name']
     else:
         return row['SAM Account Name'].upper()
