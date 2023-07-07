@@ -233,7 +233,7 @@ def create_pie_charts(df, ws):
     responsibilities, member_of = get_responsibility_and_member_of_data(df)
 
     # Append the responsibility data to the worksheet
-    append_dataframe_to_sheet(ws, responsibilities, start_row=2, start_col=1)
+    append_dataframe_to_sheet(ws, responsibilities, start_row=1, start_col=1)
 
     # Adjust the column width for better visibility
     adjust_column_width(ws, {'A': 45, 'B': 10})
@@ -245,7 +245,7 @@ def create_pie_charts(df, ws):
     create_excel_pie_chart(ws, responsibilities, min_col=1, max_col=2, chart_location="F3")
 
     # Append the member_of data to the worksheet at a column offset
-    append_dataframe_to_sheet(ws, member_of, start_row=2, start_col=4)  # 4 here is an offset for a new column
+    append_dataframe_to_sheet(ws, member_of, start_row=1, start_col=4)  # 4 here is an offset for a new column
 
     # Adjust the column width for better visibility
     adjust_column_width(ws, {'D': 45, 'E': 20})

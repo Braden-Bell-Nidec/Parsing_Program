@@ -5,7 +5,7 @@ import sys
 import threading
 
 #Debug variable to automatically set file sources
-DEBUG = False
+DEBUG = True
 
 # Class to redirect stdout to the text box
 class TextboxWriter:

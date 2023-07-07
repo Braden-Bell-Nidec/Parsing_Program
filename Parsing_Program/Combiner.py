@@ -29,10 +29,7 @@ def merge_files(epga_file, ad_file, output_file):
         raise ValueError(f"The Active Directory file '{ad_file}' is not formatted correctly.\nPlease ensure it is a valid CSV file with expected column names.")
 
     # Convert the "SAM Account Name", 'Member of', and 'Office' columns to uppercase for case-insensitive match
-    #ad['SAM Account Name'] = ad.apply(adjust_username, axis=1)
     ad['SAM Account Name'] = ad.apply(adjust_username, axis=1)
-    #print(ad['SAM Account Name'])
-    #ad['SAM Account Name'] = ad['SAM Account Name'].str.upper()
     ad['Member of'] = ad['Member of'].str.upper()
     ad['Office'] = ad['Office'].str.upper()
     # Merge the two DataFrames on the user name columns
@@ -51,12 +48,23 @@ def merge_files(epga_file, ad_file, output_file):
     #print(combined)
     # Write the combined DataFrame to a new Excel file
     combined.to_excel(output_file, index=False)
-    
     return output_file
 
 
 
 def adjust_username(row):
+    """
+    Adjusts the 'SAM Account Name' for a row of data from the Active Directory file.
+
+    For users from the "EPG Reynosa" office, a username is generated based on the 'Display Name'.
+    For other users, the 'SAM Account Name' is simply converted to uppercase.
+
+    Args:
+        row (pd.Series): A row of data from the Active Directory file.
+
+    Returns:
+        str: The adjusted username.
+    """
     if row['Office'] == "EPG Reynosa":
         try:
             # Initialize an empty string for the sanitized name
@@ -72,13 +80,15 @@ def adjust_username(row):
             name_parts = sanitized_name.split(',')
             last_name = name_parts[0].strip().split(" ")[0]
             first_name = name_parts[1].strip().split(" ")[0]
+            # Construct username based on the first 6 characters of the last name and the first 2 characters of the first name, converted to uppercase
             username = (last_name[:6] + first_name[:2]).upper()
-            #print(username)
             return username
         except Exception as e:
             print(f"Error processing name {row['Display Name']}: {e}")
-            return row['SAM Account Name']
+            # If an exception occurred while generating the username, return the original 'SAM Account Name' converted to uppercase
+            return row['SAM Account Name'].upper()
     else:
+        # If the user is not from the "EPG Reynosa" office, return the 'SAM Account Name' converted to uppercase
         return row['SAM Account Name'].upper()
 
 
